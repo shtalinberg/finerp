@@ -1,0 +1,62 @@
+# EditorConfig is awesome: https://EditorConfig.org
+
+# top-most EditorConfig file
+root = true
+
+[*]  # global settings
+end_of_line = lf  # Unix-style newlines
+charset = utf-8   # Set default charset
+indent_size = 4
+indent_style = space
+insert_final_newline = true  # newline ending every file
+trim_trailing_whitespace = true
+
+[{*.{js,jsx,json,ts},check-openapi}]
+max_line_length = 100
+
+# 4 space indentation
+[*.{py,pyi}]
+indent_size = 4
+indent_style = space
+# Docstrings and comments use max_line_length = 79
+# isort line_length = 88
+max_line_length = 119
+
+# Indentation override for all js,jsx
+[*.{js,jsx}]
+indent_style = space
+indent_size = 2
+
+# Use 2 spaces for the HTML files
+[*.html]
+indent_size = 2
+tab_width = 2
+
+[*.{css,scss}]
+indent_size = 2
+tab_width = 2
+
+[*.{md,svg,rb,pp,yaml,yml}]
+indent_size = 2
+
+# The JSON files contain newlines inconsistently
+[*.json]
+indent_size = 2
+indent_style = space
+insert_final_newline = ignore
+
+# Minified JavaScript files shouldn't be changed
+[**.min.js]
+indent_style = ignore
+insert_final_newline = ignore
+
+# Tab indentation (no size specified)
+[Makefile]
+indent_style = tab
+
+# Batch files use tabs for indentation
+[*.bat]
+indent_style = tab
+
+[docs/**.txt]
+max_line_length = 80

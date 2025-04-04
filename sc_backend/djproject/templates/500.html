@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+{% load i18n %}
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% trans "500: Internal Server Error" %}</title>
+  <style>
+    /* Reset and base styles */
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+
+    body, h1, h2, p {
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: #f8f9fa;
+      color: #2d3748;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      line-height: 1.6;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+
+    .container {
+      max-width: 650px;
+      width: 100%;
+      padding: 2.5rem;
+      background-color: #ffffff;
+      border-radius: 1rem;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .error-content {
+      position: relative;
+      z-index: 10;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 2.75rem;
+      font-weight: 700;
+      color: #e53e3e;
+      margin-bottom: 1rem;
+      background: linear-gradient(45deg, #e53e3e, #fc8181);
+      background-clip: text;
+      -webkit-background-clip: text;
+      color: transparent;
+    }
+
+    p {
+      font-size: 1.125rem;
+      margin-bottom: 1.75rem;
+      color: #4a5568;
+    }
+
+    .actions {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      margin-top: 2rem;
+    }
+
+    .action-button {
+      display: inline-block;
+      padding: 0.75rem 1.5rem;
+      background-color: #667eea;
+      color: white;
+      border-radius: 0.5rem;
+      text-decoration: none;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      border: none;
+      cursor: pointer;
+    }
+
+    .action-button:hover {
+      background-color: #5a67d8;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .action-button:active {
+      transform: translateY(0);
+    }
+
+    .action-button.secondary {
+      background-color: transparent;
+      color: #667eea;
+      border: 1px solid #cbd5e0;
+    }
+
+    .action-button.secondary:hover {
+      border-color: #667eea;
+      background-color: rgba(102, 126, 234, 0.05);
+    }
+
+    /* SVG elements styling */
+    .error-illustration {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+
+    .background-shapes {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+
+    .shape {
+      position: absolute;
+      opacity: 0.1;
+    }
+
+    .shape-1 {
+      top: -5%;
+      right: -5%;
+      animation: float 6s ease-in-out infinite;
+    }
+
+    .shape-2 {
+      bottom: -5%;
+      left: -5%;
+      animation: float 7s ease-in-out infinite 1s;
+    }
+
+    .shape-3 {
+      top: 50%;
+      right: 0;
+      animation: float 8s ease-in-out infinite 0.5s;
+    }
+
+    /* Animations */
+    @keyframes float {
+      0% {
+        transform: translateY(0) rotate(0deg);
+      }
+      50% {
+        transform: translateY(-20px) rotate(5deg);
+      }
+      100% {
+        transform: translateY(0) rotate(0deg);
+      }
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(1.05);
+      }
+    }
+
+    .server-icon {
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    .error-code {
+      font-size: 7rem;
+      font-weight: 800;
+      line-height: 1;
+      margin-bottom: 0.5rem;
+      color: #e53e3e;
+      opacity: 0.2;
+      position: absolute;
+      top: 0;
+      right: 15px;
+      z-index: 1;
+    }
+
+    /* Responsive styles */
+    @media (min-width: 640px) {
+      .actions {
+        flex-direction: row;
+        justify-content: center;
+        gap: 1rem;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .container {
+        padding: 2rem 1.5rem;
+      }
+
+      h1 {
+        font-size: 2.25rem;
+      }
+
+      p {
+        font-size: 1rem;
+      }
+
+      .error-code {
+        font-size: 5rem;
+        top: 5px;
+        right: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Background shapes -->
+    <div class="background-shapes">
+      <svg class="shape shape-1" viewBox="0 0 200 200" width="200" height="200">
+        <path fill="#4299e1" d="M42.7,-57.2C54.9,-47.3,64.2,-33.4,69.2,-17.6C74.2,-1.9,75,15.7,68.3,29.9C61.6,44.2,47.5,55.1,32.3,62.4C17,69.7,0.5,73.3,-18.4,71.8C-37.3,70.2,-58.5,63.4,-69.2,49.2C-79.9,35,-80,13.3,-76.1,-5.7C-72.3,-24.7,-64.5,-41,-51.8,-51.2C-39,-61.5,-21.3,-65.6,-3.2,-61.9C14.9,-58.2,30.5,-67.1,42.7,-57.2Z" transform="translate(100 100)" />
+      </svg>
+      <svg class="shape shape-2" viewBox="0 0 200 200" width="180" height="180">
+        <path fill="#667eea" d="M39.9,-50.2C53.5,-39.6,67.9,-29.6,73.2,-15.8C78.5,-2,74.8,15.6,66.1,29.5C57.3,43.5,43.6,53.9,28.9,58.4C14.1,62.9,-1.7,61.6,-19.2,58.7C-36.8,55.8,-56.1,51.4,-66,39.1C-75.9,26.8,-76.6,6.5,-72.8,-12.1C-68.9,-30.7,-60.5,-47.7,-47,-58.5C-33.5,-69.3,-14.9,-73.9,-0.2,-73.7C14.6,-73.5,26.3,-60.8,39.9,-50.2Z" transform="translate(100 100)" />
+      </svg>
+      <svg class="shape shape-3" viewBox="0 0 200 200" width="150" height="150">
+        <path fill="#fc8181" d="M47.7,-61.1C62.1,-52.8,74.5,-39.2,79.2,-23.3C83.9,-7.5,80.9,10.7,73.2,26.2C65.5,41.7,53.1,54.6,38.6,61.3C24.1,68,7.4,68.6,-10.7,68.4C-28.9,68.1,-48.6,67,-60.1,56.7C-71.6,46.4,-74.9,26.9,-74.7,8.3C-74.5,-10.3,-70.8,-27.9,-61.3,-41.1C-51.9,-54.3,-36.5,-63.2,-20.9,-69.9C-5.3,-76.6,11.6,-81.2,25.5,-77.7C39.4,-74.2,33.4,-69.5,47.7,-61.1Z" transform="translate(100 100)" />
+      </svg>
+    </div>
+
+    <!-- Error code -->
+    <div class="error-code">500</div>
+
+    <div class="error-content">
+      <!-- Error illustration -->
+      <div class="error-illustration">
+        <svg class="server-icon" width="120" height="120" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="2" y="3" width="20" height="6" rx="1" stroke="#e53e3e" stroke-width="2"/>
+          <rect x="2" y="9" width="20" height="6" rx="1" stroke="#e53e3e" stroke-width="2"/>
+          <rect x="2" y="15" width="20" height="6" rx="1" stroke="#e53e3e" stroke-width="2"/>
+          <circle cx="6" cy="6" r="1" fill="#e53e3e"/>
+          <circle cx="6" cy="12" r="1" fill="#e53e3e"/>
+          <circle cx="6" cy="18" r="1" fill="#e53e3e"/>
+          <path d="M11 6H17" stroke="#e53e3e" stroke-width="2" stroke-linecap="round"/>
+          <path d="M11 12H17" stroke="#e53e3e" stroke-width="2" stroke-linecap="round"/>
+          <path d="M11 18H17" stroke="#e53e3e" stroke-width="2" stroke-linecap="round"/>
+          <path d="M14 18L14 20" stroke="#e53e3e" stroke-width="2" stroke-linecap="round"/>
+          <circle cx="14" cy="22" r="1" fill="#e53e3e"/>
+          <path d="M10 16L10 18" stroke="#e53e3e" stroke-width="2" stroke-linecap="round"/>
+          <circle cx="10" cy="20" r="1" fill="#e53e3e"/>
+          <path d="M18 16L18 18" stroke="#e53e3e" stroke-width="2" stroke-linecap="round"/>
+          <circle cx="18" cy="20" r="1" fill="#e53e3e"/>
+        </svg>
+      </div>
+
+      <h1>{% trans "500: Internal Server Error" %}</h1>
+      <p>{% trans "We're sorry, but something went wrong on our end." %}</p>
+      <p>{% trans "Our technical team has been notified and is working to fix the issue." %}</p>
+
+      <div class="actions">
+        <button class="action-button" onclick="location.reload(true)">{% trans "Refresh Page" %}</button>
+        <button class="action-button secondary" onclick="history.back()">{% trans "Go Back" %}</button>
+        <a href="/" class="action-button secondary">{% trans "Home" %}</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
