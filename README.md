@@ -22,6 +22,7 @@ Install all packages and make migrations:
 Project Folder Structure
 ========================
 
+```
 repo_root/                     # Project root directory
 │── allstatic/                 # Collected static files
 │── media/                     # Uploaded media files
@@ -44,3 +45,4 @@ repo_root/                     # Project root directory
 │── .gitignore
 │── Makefile
 │── README.md
+```
