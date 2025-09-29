@@ -5,9 +5,8 @@ import json
 import logging
 from datetime import date, datetime, timedelta
 from decimal import Decimal
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
-from django.conf import settings
 from django.core.mail import mail_admins
 from django.core.management import BaseCommand
 from django.db import transaction
@@ -26,7 +25,7 @@ class Command(BaseCommand):
     Retrieves transaction data for the specified time period
     and creates Statement records in the database.
     python sc_backend/manage.py p24api_get_statements --account=ВАШ_НОМЕР_РАХУНКУ
-    python sc_backend/manage.py p24api_get_statements --start-date=01-01-2023 --end-date=31-12-2023 --debug
+    python sc_backend/manage.py p24api_get_statements --start-date=01-01-2024 --end-date=31-12-2024 --debug
     """
 
     help = "Fetch and process transaction statements from Privat24 API"
@@ -320,9 +319,9 @@ class Command(BaseCommand):
                         self.stdout.write(f"Next page ID: {follow_id}")
 
                 # Process each transaction
-                for transaction in transactions:
+                for transact in transactions:
                     try:
-                        self._process_transaction(transaction)
+                        self._process_transaction(transact)
                     except Exception as e:
                         self.error_count += 1
                         logger.exception(f"Error processing transaction: {e}")

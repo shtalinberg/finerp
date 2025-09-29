@@ -1,0 +1,141 @@
+<!-- sc_backend/djproject/templates/banks/bank_detail.html -->
+{% extends 'base.html' %}
+
+{% block title %}FineRP - {{ bank.name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>{{ bank.name }}</h1>
+    <div>
+      <a href="{% url 'bank_update' bank.id %}" class="btn btn-primary">
+        <i class="fas fa-edit"></i> Редагувати
+      </a>
+      <a href="{% url 'bank_list' %}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left"></i> Назад до списку
+      </a>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-6">
+      <div class="card mb-4">
+        <div class="card-header">
+          <h5>Основна інформація</h5>
+        </div>
+        <div class="card-body">
+          <table class="table table-borderless">
+            <tr>
+              <th style="width: 35%">Назва:</th>
+              <td>{{ bank.name }}</td>
+            </tr>
+            <tr>
+              <th>Код (МФО):</th>
+              <td>{{ bank.code|default:"-" }}</td>
+            </tr>
+            <tr>
+              <th>Тип банку:</th>
+              <td>{{ bank.get_bank_type_display }}</td>
+            </tr>
+            <tr>
+              <th>Місто:</th>
+              <td>{{ bank.city|default:"-" }}</td>
+            </tr>
+            <tr>
+              <th>Адреса:</th>
+              <td>{{ bank.address|default:"-" }}</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+
+      <div class="card mb-4">
+        <div class="card-header">
+          <h5>SWIFT інформація</h5>
+        </div>
+        <div class="card-body">
+          <table class="table table-borderless">
+            <tr>
+              <th style="width: 35%">SWIFT код:</th>
+              <td>{{ bank.swift_code|default:"-" }}</td>
+            </tr>
+            <tr>
+              <th>Назва англійською:</th>
+              <td>{{ bank.swift_name|default:"-" }}</td>
+            </tr>
+            <tr>
+              <th>Адреса англійською:</th>
+              <td>{{ bank.swift_address|default:"-" }}</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="card mb-4">
+        <div class="card-header">
+          <h5>Банк-кореспондент</h5>
+        </div>
+        <div class="card-body">
+          <table class="table table-borderless">
+            <tr>
+              <th style="width: 35%">Назва:</th>
+              <td>{{ bank.corr_name|default:"-" }}</td>
+            </tr>
+            <tr>
+              <th>Адреса:</th>
+              <td>{{ bank.corr_address|default:"-" }}</td>
+            </tr>
+            <tr>
+              <th>SWIFT код:</th>
+              <td>{{ bank.corr_swift|default:"-" }}</td>
+            </tr>
+            <tr>
+              <th>Кореспондентський рахунок:</th>
+              <td>{{ bank.corr_account|default:"-" }}</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+
+      <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">Рахунки в цьому банку</h5>
+          <a href="{% url 'bank_account_create' %}?bank={{ bank.id }}" class="btn btn-sm btn-primary">
+            <i class="fas fa-plus"></i> Додати рахунок
+          </a>
+        </div>
+        <div class="card-body">
+          {% with bank_accounts=bank.bank_accounts.all %}
+            {% if bank_accounts %}
+              <div class="list-group">
+                {% for account in bank_accounts %}
+                  <a href="{% url 'bank_account_update' account.id %}" class="list-group-item list-group-item-action">
+                    <div class="d-flex w-100 justify-content-between">
+                      <h6 class="mb-1">{{ account.acc_iban }}</h6>
+                      <small>{{ account.get_account_type_display }}</small>
+                    </div>
+                    <p class="mb-1">{{ account.currency.iso_code }}</p>
+                    <small class="text-muted">
+                      {% if account.is_main %}<span class="badge bg-primary">Основний</span>{% endif %}
+                      {% if account.is_default %}<span class="badge bg-success">За замовчуванням</span>{% endif %}
+                      <span class="badge bg-{% if account.account_status == 'active' %}success{% elif account.account_status == 'blocked' %}danger{% else %}secondary{% endif %}">
+                        {{ account.get_account_status_display }}
+                      </span>
+                    </small>
+                  </a>
+                {% endfor %}
+              </div>
+            {% else %}
+              <div class="alert alert-info">
+                Немає рахунків у цьому банку. <a href="{% url 'bank_account_create' %}?bank={{ bank.id }}" class="alert-link">Додати перший рахунок</a>
+              </div>
+            {% endif %}
+          {% endwith %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

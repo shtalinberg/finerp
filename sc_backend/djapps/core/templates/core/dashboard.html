@@ -1,0 +1,321 @@
+
+{% extends 'base.html' %}
+
+{% block title %}FineRP - Головна панель{% endblock %}
+
+{% block content %}
+<div class="container">
+  <h1 class="mb-4">Вітаємо у FineRP</h1>
+
+  {% if no_taxpayers %}
+    <div class="alert alert-warning">
+      <h4 class="alert-heading">У вас ще немає ФОП</h4>
+      <p>Щоб почати роботу з системою, додайте хоча б одного ФОП.</p>
+      <hr>
+      <a href="{% url 'taxpayer_create' %}" class="btn btn-primary">
+        <i class="fas fa-plus"></i> Додати ФОП
+      </a>
+    </div>
+  {% else %}
+    <!-- Платник податків -->
+    <div class="card mb-4">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">{{ selected_taxpayer.full_name }}</h5>
+        {% if taxpayers_list.count > 1 %}
+          <div class="dropdown">
+            <button class="btn btn-outline-primary dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+              Змінити ФОП
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+              {% for taxpayer in taxpayers_list %}
+                <li><a class="dropdown-item {% if taxpayer.id == selected_taxpayer.id %}active{% endif %}" href="?taxpayer={{ taxpayer.id }}">{{ taxpayer.full_name }}</a></li>
+              {% endfor %}
+            </ul>
+          </div>
+        {% endif %}
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-6">
+            <p><strong>ІПН:</strong> {{ selected_taxpayer.tax_number }}</p>
+            <p><strong>Система оподаткування:</strong>
+              {% if selected_taxpayer.tax_system == 'simplified' %}
+                Єдиний податок (спрощена система)
+              {% else %}
+                Загальна система
+              {% endif %}
+            </p>
+            {% if selected_taxpayer.tax_system == 'simplified' %}
+              <p><strong>Група:</strong> {{ selected_taxpayer.get_tax_group_display }}</p>
+            {% endif %}
+          </div>
+          <div class="col-md-6">
+            <p><strong>Ставка податку:</strong> {{ selected_taxpayer.tax_rate }}%</p>
+            <p><strong>Ставка ЄСВ:</strong> {{ selected_taxpayer.esv_rate }}%</p>
+            <p><strong>Платник ПДВ:</strong>
+              {% if selected_taxpayer.is_vat_payer %}
+                <span class="badge bg-success">Так</span>
+              {% else %}
+                <span class="badge bg-secondary">Ні</span>
+              {% endif %}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <!-- Фінансовий огляд -->
+      <div class="col-md-6">
+        <div class="card mb-4">
+          <div class="card-header">
+            <h5>Фінансовий огляд</h5>
+          </div>
+          <div class="card-body">
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <div class="card bg-light">
+                  <div class="card-body text-center">
+                    <h6 class="card-title">Дохід за {{ current_quarter }} квартал</h6>
+                    <h3 class="text-success mb-0">{{ quarter_income|floatformat:2 }} ₴</h3>
+                    <small class="text-muted">{{ quarter_start|date:"d.m.Y" }} - {{ quarter_end|date:"d.m.Y" }}</small>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-md-6 mb-3">
+                <div class="card bg-light">
+                  <div class="card-body text-center">
+                    <h6 class="card-title">Дохід за {{ current_year }} рік</h6>
+                    <h3 class="text-success mb-0">{{ year_income|floatformat:2 }} ₴</h3>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-md-6 mb-3">
+                <div class="card bg-light">
+                  <div class="card-body text-center">
+                    <h6 class="card-title">Доходи за 30 днів</h6>
+                    <h3 class="text-success mb-0">{{ month_income|floatformat:2 }} ₴</h3>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-md-6 mb-3">
+                <div class="card bg-light">
+                  <div class="card-body text-center">
+                    <h6 class="card-title">Витрати за 30 днів</h6>
+                    <h3 class="text-danger mb-0">{{ month_expenses|floatformat:2 }} ₴</h3>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-3">
+              <a href="{% url 'income_book_list' %}?taxpayer={{ selected_taxpayer.id }}" class="btn btn-primary">
+                <i class="fas fa-book"></i> Книга доходів
+              </a>
+              <a href="{% url 'finop_list' %}?taxpayer={{ selected_taxpayer.id }}" class="btn btn-outline-primary">
+                <i class="fas fa-exchange-alt"></i> Фінансові операції
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Податковий огляд -->
+      <div class="col-md-6">
+        <div class="card mb-4">
+          <div class="card-header">
+            <h5>Податки за {{ current_quarter }} квартал {{ current_year }}</h5>
+          </div>
+          <div class="card-body">
+            <div class="row">
+              <div class="col-md-4 mb-3">
+                <div class="card {% if tax_report and tax_report.income_tax_paid %}bg-success text-white{% else %}bg-light{% endif %}">
+                  <div class="card-body text-center">
+                    <h6 class="card-title">Податок на дохід</h6>
+                    <h3 class="mb-0">{{ income_tax|floatformat:2 }} ₴</h3>
+                    <small>{{ selected_taxpayer.tax_rate }}% від доходу</small>
+                    {% if tax_report and tax_report.income_tax_paid %}
+                      <div class="mt-2"><i class="fas fa-check-circle"></i> Сплачено</div>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-md-4 mb-3">
+                <div class="card {% if tax_report and tax_report.military_tax_paid %}bg-success text-white{% else %}bg-light{% endif %}">
+                  <div class="card-body text-center">
+                    <h6 class="card-title">Військовий збір</h6>
+                    <h3 class="mb-0">{{ military_tax|floatformat:2 }} ₴</h3>
+                    <small>1.5% від доходу</small>
+                    {% if tax_report and tax_report.military_tax_paid %}
+                      <div class="mt-2"><i class="fas fa-check-circle"></i> Сплачено</div>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-md-4 mb-3">
+                <div class="card {% if tax_report and tax_report.esv_paid %}bg-success text-white{% else %}bg-light{% endif %}">
+                  <div class="card-body text-center">
+                    <h6 class="card-title">ЄСВ</h6>
+                    <h3 class="mb-0">{{ esv_amount|floatformat:2 }} ₴</h3>
+                    <small>{{ selected_taxpayer.esv_rate }}%</small>
+                    {% if tax_report and tax_report.esv_paid %}
+                      <div class="mt-2"><i class="fas fa-check-circle"></i> Сплачено</div>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-3">
+              {% if report_exists %}
+                <a href="{% url 'tax_report_detail' tax_report.id %}" class="btn btn-primary">
+                  <i class="fas fa-file-invoice"></i> Переглянути звіт
+                </a>
+              {% else %}
+                <a href="{% url 'tax_report_preview' current_quarter current_year %}?taxpayer={{ selected_taxpayer.id }}" class="btn btn-primary">
+                  <i class="fas fa-file-invoice"></i> Створити звіт
+                </a>
+              {% endif %}
+              <a href="{% url 'tax_report_list' %}?taxpayer={{ selected_taxpayer.id }}" class="btn btn-outline-primary">
+                <i class="fas fa-list"></i> Усі звіти
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+<!-- sc_backend/djproject/templates/core/dashboard.html (продовження) -->
+<div class="row">
+  <!-- Останні фінансові операції -->
+  <div class="col-md-7">
+    <div class="card mb-4">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Останні фінансові операції</h5>
+        <a href="{% url 'finop_list' %}?taxpayer={{ selected_taxpayer.id }}" class="btn btn-sm btn-outline-primary">
+          Усі операції
+        </a>
+      </div>
+      <div class="card-body">
+        {% if recent_finops %}
+          <div class="list-group">
+            {% for finop in recent_finops %}
+              <div class="list-group-item">
+                <div class="d-flex w-100 justify-content-between">
+                  <h6 class="mb-1">
+                    <span class="{% if finop.is_income %}text-success{% elif finop.is_expense %}text-danger{% endif %}">
+                      {{ finop.amount|floatformat:2 }} {{ finop.bank_account.currency.iso_code }}
+                    </span>
+                  </h6>
+                  <small>{{ finop.operation_date|date:"d.m.Y H:i" }}</small>
+                </div>
+                <p class="mb-1">{{ finop.description|truncatechars:100 }}</p>
+                <small>
+                  {{ finop.bank_account.acc_iban }}
+                  <span class="badge {% if finop.is_income %}bg-success{% elif finop.is_expense %}bg-danger{% else %}bg-secondary{% endif %}">
+                    {{ finop.get_operation_type_display }}
+                  </span>
+                </small>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="alert alert-info">
+            Немає нещодавніх фінансових операцій. <a href="{% url 'sync_finops' %}?taxpayer={{ selected_taxpayer.id }}">Синхронізуйте операції з банку</a>.
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Задачі та швидкі дії -->
+  <div class="col-md-5">
+    <!-- Задачі -->
+    <div class="card mb-4">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Задачі</h5>
+        <a href="{% url 'task_list' %}" class="btn btn-sm btn-outline-primary">
+          Усі задачі
+        </a>
+      </div>
+      <div class="card-body">
+        {% if tasks %}
+          <div class="list-group">
+            {% for task in tasks %}
+              <a href="{% url 'task_detail' task.id %}" class="list-group-item list-group-item-action">
+                <div class="d-flex w-100 justify-content-between">
+                  <h6 class="mb-1">{{ task.title }}</h6>
+                  <small
+                    class="{% if task.due_date|date:'Y-m-d' < current_date|date:'Y-m-d' %}text-danger{% endif %}"
+                  >
+                    {{ task.due_date|date:"d.m.Y" }}
+                  </small>
+                </div>
+                <small>
+                  {% if task.status == 'pending' %}
+                    <span class="badge bg-warning">Очікує</span>
+                  {% elif task.status == 'in_progress' %}
+                    <span class="badge bg-primary">В процесі</span>
+                  {% endif %}
+                  {% if task.priority == 'high' %}
+                    <span class="badge bg-danger">Високий пріоритет</span>
+                  {% endif %}
+                </small>
+              </a>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="alert alert-info">
+            Немає поточних задач.
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Швидкі дії -->
+    <div class="card mb-4">
+      <div class="card-header">
+        <h5>Швидкі дії</h5>
+      </div>
+      <div class="card-body">
+        <div class="d-grid gap-3">
+          <a href="{% url 'sync_finops' %}?taxpayer={{ selected_taxpayer.id }}" class="btn btn-lg btn-primary">
+            <i class="fas fa-sync"></i> Синхронізувати операції
+          </a>
+
+          <a href="{% url 'income_record_create' %}?taxpayer={{ selected_taxpayer.id }}" class="btn btn-lg btn-success">
+            <i class="fas fa-plus"></i> Додати запис доходу
+          </a>
+
+          <a href="{% url 'tax_report_preview' current_quarter current_year %}?taxpayer={{ selected_taxpayer.id }}" class="btn btn-lg btn-warning">
+            <i class="fas fa-file-invoice"></i> Підготувати податковий звіт
+          </a>
+        </div>
+
+        <!-- Податкові терміни -->
+        <div class="alert alert-info mt-3">
+          <h6><i class="fas fa-calendar-alt"></i> Податкові терміни</h6>
+          <p class="mb-1"><strong>Єдиний податок + військовий збір:</strong>
+            {% if current_quarter == 1 %}
+              до 20 травня {{ current_year }}
+            {% elif current_quarter == 2 %}
+              до 20 серпня {{ current_year }}
+            {% elif current_quarter == 3 %}
+              до 20 листопада {{ current_year }}
+            {% else %}
+              до 20 лютого {{ current_year|add:1 }}
+            {% endif %}
+          </p>
+          <p class="mb-0"><strong>ЄСВ:</strong> до 20 числа кожного місяця</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+</div>
+{% endblock %}

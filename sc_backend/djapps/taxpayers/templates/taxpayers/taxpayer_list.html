@@ -1,0 +1,108 @@
+
+{% extends 'base.html' %}
+
+{% block title %}FineRP - Платники податків{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Платники податків</h1>
+    <a href="{% url 'taxpayer_create' %}" class="btn btn-primary">
+      <i class="fas fa-plus"></i> Додати ФОП
+    </a>
+  </div>
+
+  <div class="card">
+    <div class="card-body">
+      {% if taxpayers %}
+        <div class="table-responsive">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>Повне ім'я</th>
+                <th>ІПН</th>
+                <th>Система оподаткування</th>
+                <th>Група / Ставка</th>
+                <th>Дата реєстрації</th>
+                <th>Статус</th>
+                <th>Дії</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for taxpayer in taxpayers %}
+                <tr>
+                  <td>{{ taxpayer.full_name }}</td>
+                  <td>{{ taxpayer.tax_number }}</td>
+                  <td>
+                    {% if taxpayer.tax_system == 'simplified' %}
+                      Єдиний податок
+                    {% else %}
+                      Загальна система
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if taxpayer.tax_system == 'simplified' %}
+                      {{ taxpayer.get_tax_group_display }} / {{ taxpayer.tax_rate }}%
+                    {% else %}
+                      {{ taxpayer.tax_rate }}%
+                    {% endif %}
+                  </td>
+                  <td>{{ taxpayer.registration_date|date:"d.m.Y" }}</td>
+                  <td>
+                    {% if taxpayer.is_active %}
+                      <span class="badge bg-success">Активний</span>
+                    {% else %}
+                      <span class="badge bg-danger">Неактивний</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    <div class="btn-group">
+                      <a href="{% url 'taxpayer_detail' taxpayer.id %}" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-eye"></i>
+                      </a>
+                      <a href="{% url 'taxpayer_update' taxpayer.id %}" class="btn btn-sm btn-outline-secondary">
+                        <i class="fas fa-edit"></i>
+                      </a>
+                      <button type="button" class="btn btn-sm btn-outline-danger"
+                              data-bs-toggle="modal" data-bs-target="#deleteModal{{ taxpayer.id }}">
+                        <i class="fas fa-trash"></i>
+                      </button>
+                    </div>
+
+                    <!-- Delete Modal -->
+                    <div class="modal fade" id="deleteModal{{ taxpayer.id }}" tabindex="-1" aria-hidden="true">
+                      <div class="modal-dialog">
+                        <div class="modal-content">
+                          <div class="modal-header">
+                            <h5 class="modal-title">Підтвердження видалення</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                          </div>
+                          <div class="modal-body">
+                            <p>Ви впевнені, що хочете видалити платника податків <strong>{{ taxpayer.full_name }}</strong>?</p>
+                            <p class="text-danger">Ця дія не може бути скасована.</p>
+                          </div>
+                          <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Скасувати</button>
+                            <form method="post" action="{% url 'taxpayer_delete' taxpayer.id %}">
+                              {% csrf_token %}
+                              <button type="submit" class="btn btn-danger">Видалити</button>
+                            </form>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="alert alert-info">
+          Ви ще не додали жодного платника податків. <a href="{% url 'taxpayer_create' %}" class="alert-link">Додати першого ФОП</a>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

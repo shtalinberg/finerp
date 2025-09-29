@@ -4,45 +4,26 @@ from django.core.validators import MinLengthValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
+from currencies.models import Currency
+
+from .constants import (  # STATEMENT_DOC_TYPES,
+    ACCOUNT_STATUS_ACTIVE,
+    ACCOUNT_STATUSES,
+    ACCOUNT_TYPE_CURRENT,
+    ACCOUNT_TYPES,
+    BANK_TYPE_COMMERCIAL,
+    BANK_TYPES,
+)
+
 # from banks.managers import BankAccountManager, BankManager
 
-STATEMENT_TYPE_REAL = 'r'  # - реальний,
-STATEMENT_TYPE_INFO = 'i'  # - інформаційний
-
-STATEMENT_TYPES = ((STATEMENT_TYPE_REAL, 'real'), (STATEMENT_TYPE_INFO, 'information'))
-
-STATEMENT_STATE_R = 'r'  # проведено
-STATEMENT_STATE_T = 't'  # сторнований
-
-STATEMENT_STATES = (
-    (STATEMENT_STATE_R, 'проведено'),  # - проведено,
-    (STATEMENT_STATE_T, 'сторнований'),  # - сторнований
-)
-
-STATEMENT_DOC_TYPE_P = 'p'  # доручення
-STATEMENT_DOC_TYPE_T = 't'  # вимога
-STATEMENT_DOC_TYPE_M = 'm'  # меморіальний ордер
-STATEMENT_DOC_TYPE_X = 'x'  # сторнований
-STATEMENT_DOC_TYPE_R = 'r'  # сторнований
-
-STATEMENT_DOC_TYPES = (
-    (STATEMENT_DOC_TYPE_P, 'доручення'),
-    (STATEMENT_DOC_TYPE_T, 'вимога'),
-    (STATEMENT_DOC_TYPE_M, 'меморіальний ордер'),
-    (STATEMENT_DOC_TYPE_X, 'прибутковий ордер'),
-    (STATEMENT_DOC_TYPE_R, 'видатковий ордер'),
-)
-
-
-
 class Bank(models.Model):
-    id = models.UUIDField(
-        auto_created=True,
-        primary_key=True,
-        serialize=False,
-        verbose_name='ID',
+    uid = models.UUIDField(
+        verbose_name=_("UUID"),
         default=uuid.uuid4,
         editable=False,
+        unique=True,
+        help_text=_("Unique Identifier UUID"),
     )
     name = models.CharField(_("bank name"), max_length=100)
     ifi_mfo = models.CharField(
@@ -51,6 +32,10 @@ class Bank(models.Model):
         validators=[MinLengthValidator(6)],
         null=True,
         blank=True,
+        help_text=_("bank code (IFI MFO)"),
+    )
+    bank_type = models.CharField(
+        _("Тип банку"), max_length=20, choices=BANK_TYPES, default=BANK_TYPE_COMMERCIAL
     )
     city = models.CharField(_("bank city"), max_length=50, null=True, blank=True)
     address = models.CharField(_("bank address"), max_length=250, null=True, blank=True)
@@ -93,17 +78,16 @@ class Bank(models.Model):
 
 
 class BankAccount(models.Model):
-    id = models.UUIDField(
-        auto_created=True,
-        primary_key=True,
-        serialize=False,
-        verbose_name='ID',
+    uid = models.UUIDField(
+        verbose_name=_("UUID"),
         default=uuid.uuid4,
         editable=False,
+        unique=True,
+        help_text=_("Unique Identifier UUID"),
     )
     acc_iban = models.CharField(_("account IBAN"), max_length=29)
     bank = models.ForeignKey(
-        "banks.Bank",
+        Bank,
         verbose_name=_("bank"),
         related_name='bank_accounts',
         on_delete=models.CASCADE,
@@ -113,6 +97,24 @@ class BankAccount(models.Model):
         help_text=_("Currency Code (ISO 4217)"),
         max_length=5,
         unique=True,
+    )
+    account_type = models.CharField(
+        _("Тип рахунку"),
+        max_length=20,
+        choices=ACCOUNT_TYPES,
+        default=ACCOUNT_TYPE_CURRENT,
+    )
+    currency = models.ForeignKey(
+        Currency,
+        verbose_name=_('Валюта'),
+        on_delete=models.PROTECT,
+        related_name='bank_accounts',
+    )
+    account_status = models.CharField(
+        _("Статус рахунку"),
+        max_length=20,
+        choices=ACCOUNT_STATUSES,
+        default=ACCOUNT_STATUS_ACTIVE,
     )
     is_main = models.BooleanField(_('Main'), default=False)
     is_default = models.BooleanField(_("default"), default=False)
@@ -135,32 +137,30 @@ class BankAccount(models.Model):
         return f"{self.acc_iban} {self.currency_type} {self.bank.name}".strip()
 
 
-class Statement(models.Model):
-    """
-    BankAccount Statement
-    """
+# class Statement(models.Model):
+#     """
+#     BankAccount Statement
+#     """
+#     uid = models.UUIDField(
+#         verbose_name=_("UUID"),
+#         default=uuid.uuid4,
+#         editable=False,
+#         unique=True,
+#         help_text=_("Unique Identifier UUID"),
+#     )
 
-    id = models.UUIDField(
-        auto_created=True,
-        primary_key=True,
-        serialize=False,
-        verbose_name='ID',
-        default=uuid.uuid4,
-        editable=False,
-    )
+#     doctype = models.CharField(
+#         verbose_name=_('type of document'),
+#         max_length=20,
+#         blank=True,
+#         null=True,
+#         choices=STATEMENT_DOC_TYPES,
+#         help_text=_("document type"),
+#     )
 
-    doctype = models.CharField(
-        verbose_name=_('type of document'),
-        max_length=20,
-        blank=True,
-        null=True,
-        choices=STATEMENT_DOC_TYPES,
-        help_text=_("document type"),
-    )
-
-    purpose = models.TextField(
-        verbose_name=_('purpose'),
-        blank=True,
-        null=True,
-        help_text=_("purpose of payment"),
-    )
+#     purpose = models.TextField(
+#         verbose_name=_('purpose'),
+#         blank=True,
+#         null=True,
+#         help_text=_("purpose of payment"),
+#     )

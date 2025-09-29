@@ -1,0 +1,164 @@
+
+{% extends 'base.html' %}
+
+{% block title %}FineRP - {% if form.instance.pk %}Редагування банку{% else %}Новий банк{% endif %}{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="col-md-10">
+      <div class="card">
+        <div class="card-header">
+          <h4>{% if form.instance.pk %}Редагувати банк{% else %}Додати новий банк{% endif %}</h4>
+        </div>
+        <div class="card-body">
+          <form method="post">
+            {% csrf_token %}
+
+            <div class="row">
+              <div class="col-md-6">
+                <h5 class="mb-3">Основна інформація</h5>
+
+                <div class="mb-3">
+                  <label for="{{ form.name.id_for_label }}">{{ form.name.label }}</label>
+                  {{ form.name }}
+                  {% if form.name.errors %}
+                  <div class="invalid-feedback d-block">
+                    {{ form.name.errors }}
+                  </div>
+                  {% endif %}
+                </div>
+
+                <div class="mb-3">
+                  <label for="{{ form.code.id_for_label }}">{{ form.code.label }}</label>
+                  {{ form.code }}
+                  {% if form.code.errors %}
+                  <div class="invalid-feedback d-block">
+                    {{ form.code.errors }}
+                  </div>
+                  {% endif %}
+                </div>
+
+                <div class="mb-3">
+                  <label for="{{ form.bank_type.id_for_label }}">{{ form.bank_type.label }}</label>
+                  {{ form.bank_type }}
+                  {% if form.bank_type.errors %}
+                  <div class="invalid-feedback d-block">
+                    {{ form.bank_type.errors }}
+                  </div>
+                  {% endif %}
+                </div>
+
+                <div class="mb-3">
+                  <label for="{{ form.city.id_for_label }}">{{ form.city.label }}</label>
+                  {{ form.city }}
+                  {% if form.city.errors %}
+                  <div class="invalid-feedback d-block">
+                    {{ form.city.errors }}
+                  </div>
+                  {% endif %}
+                </div>
+
+                <div class="mb-3">
+                  <label for="{{ form.address.id_for_label }}">{{ form.address.label }}</label>
+                  {{ form.address }}
+                  {% if form.address.errors %}
+                  <div class="invalid-feedback d-block">
+                    {{ form.address.errors }}
+                  </div>
+                  {% endif %}
+                </div>
+              </div>
+
+              <div class="col-md-6">
+                <h5 class="mb-3">SWIFT інформація</h5>
+
+                <div class="mb-3">
+                  <label for="{{ form.swift_code.id_for_label }}">{{ form.swift_code.label }}</label>
+                  {{ form.swift_code }}
+                  {% if form.swift_code.errors %}
+                  <div class="invalid-feedback d-block">
+                    {{ form.swift_code.errors }}
+                  </div>
+                  {% endif %}
+                </div>
+
+                <div class="mb-3">
+                  <label for="{{ form.swift_name.id_for_label }}">{{ form.swift_name.label }}</label>
+                  {{ form.swift_name }}
+                  {% if form.swift_name.errors %}
+                  <div class="invalid-feedback d-block">
+                    {{ form.swift_name.errors }}
+                  </div>
+                  {% endif %}
+                </div>
+
+                <div class="mb-3">
+                  <label for="{{ form.swift_address.id_for_label }}">{{ form.swift_address.label }}</label>
+                  {{ form.swift_address }}
+                  {% if form.swift_address.errors %}
+                  <div class="invalid-feedback d-block">
+                    {{ form.swift_address.errors }}
+                  </div>
+                  {% endif %}
+                </div>
+
+                <h5 class="mb-3 mt-4">Банк-кореспондент</h5>
+
+                <div class="mb-3">
+                  <label for="{{ form.corr_name.id_for_label }}">{{ form.corr_name.label }}</label>
+                  {{ form.corr_name }}
+                  {% if form.corr_name.errors %}
+                  <div class="invalid-feedback d-block">
+                    {{ form.corr_name.errors }}
+                  </div>
+                  {% endif %}
+                </div>
+
+                <div class="mb-3">
+                  <label for="{{ form.corr_address.id_for_label }}">{{ form.corr_address.label }}</label>
+                  {{ form.corr_address }}
+                  {% if form.corr_address.errors %}
+                  <div class="invalid-feedback d-block">
+                    {{ form.corr_address.errors }}
+                  </div>
+                  {% endif %}
+                </div>
+
+                <div class="mb-3">
+                  <label for="{{ form.corr_swift.id_for_label }}">{{ form.corr_swift.label }}</label>
+                  {{ form.corr_swift }}
+                  {% if form.corr_swift.errors %}
+                  <div class="invalid-feedback d-block">
+                    {{ form.corr_swift.errors }}
+                  </div>
+                  {% endif %}
+                </div>
+
+                <div class="mb-3">
+                  <label for="{{ form.corr_account.id_for_label }}">{{ form.corr_account.label }}</label>
+                  {{ form.corr_account }}
+                  {% if form.corr_account.errors %}
+                  <div class="invalid-feedback d-block">
+                    {{ form.corr_account.errors }}
+                  </div>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+
+            <div class="d-flex justify-content-between mt-4">
+              <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> Зберегти
+              </button>
+              <a href="{% url 'bank_list' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-times"></i> Скасувати
+              </a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

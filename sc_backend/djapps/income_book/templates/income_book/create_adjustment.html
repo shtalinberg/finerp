@@ -1,0 +1,66 @@
+
+{% extends 'base.html' %}
+
+{% block title %}FineRP - Створення коригування{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="card">
+        <div class="card-header">
+          <h4>Створення коригування для запису</h4>
+        </div>
+        <div class="card-body">
+          <div class="alert alert-info mb-4">
+            <h5 class="alert-heading">Інформація про оригінальний запис</h5>
+            <p><strong>Дата:</strong> {{ object.date|date:"d.m.Y" }}</p>
+            <p><strong>Номер документа:</strong> {{ object.document_number }}</p>
+            <p><strong>Сума:</strong> {{ object.amount|floatformat:2 }} ₴</p>
+            <p><strong>Опис:</strong> {{ object.description }}</p>
+          </div>
+
+          <form method="post">
+            {% csrf_token %}
+
+            <div class="mb-3">
+              <label for="{{ form.amount.id_for_label }}">Нова сума</label>
+              {{ form.amount }}
+              {% if form.amount.errors %}
+              <div class="invalid-feedback d-block">
+                {{ form.amount.errors }}
+              </div>
+              {% endif %}
+              <div class="form-text">
+                Введіть нову (правильну) суму доходу
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label for="{{ form.description.id_for_label }}">Новий опис (необов'язково)</label>
+              {{ form.description }}
+              {% if form.description.errors %}
+              <div class="invalid-feedback d-block">
+                {{ form.description.errors }}
+              </div>
+              {% endif %}
+              <div class="form-text">
+                Залиште порожнім, щоб використати опис оригінального запису
+              </div>
+            </div>
+
+            <div class="d-flex justify-content-between mt-4">
+              <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> Створити коригування
+              </button>
+              <a href="{% url 'income_record_detail' object.id %}" class="btn btn-outline-secondary">
+                <i class="fas fa-times"></i> Скасувати
+              </a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

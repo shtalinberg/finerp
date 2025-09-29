@@ -1,0 +1,302 @@
+<!-- sc_backend/djproject/templates/taxpayers/taxpayer_form.html -->
+{% extends 'base.html' %}
+
+{% block title %}FineRP - {% if form.instance.pk %}Редагування ФОП{% else %}Новий ФОП{% endif %}{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="col-md-10">
+      <div class="card">
+        <div class="card-header">
+          <h4>{% if form.instance.pk %}Редагувати ФОП{% else %}Додати нового ФОП{% endif %}</h4>
+        </div>
+        <div class="card-body">
+          <form method="post">
+            {% csrf_token %}
+
+            <div class="row">
+              <div class="col-md-6">
+                <h5 class="mb-3">Основна інформація</h5>
+
+                <div class="mb-3">
+                  <label for="{{ form.full_name.id_for_label }}">{{ form.full_name.label }}</label>
+                  {{ form.full_name }}
+                  {% if form.full_name.errors %}
+                  <div class="invalid-feedback d-block">
+                    {{ form.full_name.errors }}
+                  </div>
+                  {% endif %}
+                </div>
+
+                <div class="mb-3">
+                  <label for="{{ form.tax_number.id_for_label }}">{{ form.tax_number.label }}</label>
+                  {{ form.tax_number }}
+                  {% if form.tax_number.errors %}
+                  <div class="invalid-feedback d-block">
+                    {{ form.tax_number.errors }}
+                  </div>
+                  {% endif %}
+                </div>
+
+                <div class="mb-3">
+                  <label for="{{ form.registration_number.id_for_label }}">{{ form.registration_number.label }}</label>
+                  {{ form.registration_number }}
+                  {% if form.registration_number.errors %}
+                  <div class="invalid-feedback d-block">
+                    {{ form.registration_number.errors }}
+                  </div>
+                  {% endif %}
+                </div>
+
+                <div class="mb-3">
+                  <label for="{{ form.registration_date.id_for_label }}">{{ form.registration_date.label }}</label>
+                  {{ form.registration_date }}
+                  {% if form.registration_date.errors %}
+                  <div class="invalid-feedback d-block">
+                    {{ form.registration_date.errors }}
+                  </div>
+                  {% endif %}
+                </div>
+
+                <h5 class="mb-3 mt-4">Адреса</h5>
+
+                <div class="mb-3">
+                  <label for="{{ address_form.street.id_for_label }}">{{ address_form.street.label }}</label>
+                  {{ address_form.street }}
+                  {% if address_form.street.errors %}
+                  <div class="invalid-feedback d-block">
+                    {{ address_form.street.errors }}
+                  </div>
+                  {% endif %}
+                </div>
+
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="{{ address_form.house_number.id_for_label }}">{{ address_form.house_number.label }}</label>
+                      {{ address_form.house_number }}
+                      {% if address_form.house_number.errors %}
+                      <div class="invalid-feedback d-block">
+                        {{ address_form.house_number.errors }}
+                      </div>
+                      {% endif %}
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="{{ address_form.apartment.id_for_label }}">{{ address_form.apartment.label }}</label>
+                      {{ address_form.apartment }}
+                      {% if address_form.apartment.errors %}
+                      <div class="invalid-feedback d-block">
+                        {{ address_form.apartment.errors }}
+                      </div>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+
+                <div class="mb-3">
+                  <label for="{{ address_form.city.id_for_label }}">{{ address_form.city.label }}</label>
+                  {{ address_form.city }}
+                  {% if address_form.city.errors %}
+                  <div class="invalid-feedback d-block">
+                    {{ address_form.city.errors }}
+                  </div>
+                  {% endif %}
+                </div>
+
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="{{ address_form.region.id_for_label }}">{{ address_form.region.label }}</label>
+                      {{ address_form.region }}
+                      {% if address_form.region.errors %}
+                      <div class="invalid-feedback d-block">
+                        {{ address_form.region.errors }}
+                      </div>
+                      {% endif %}
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="{{ address_form.postal_code.id_for_label }}">{{ address_form.postal_code.label }}</label>
+                      {{ address_form.postal_code }}
+                      {% if address_form.postal_code.errors %}
+                      <div class="invalid-feedback d-block">
+                        {{ address_form.postal_code.errors }}
+                      </div>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-md-6">
+                <h5 class="mb-3">Податкова інформація</h5>
+
+                <div class="mb-3">
+                  <label for="{{ form.tax_system.id_for_label }}">{{ form.tax_system.label }}</label>
+                  {{ form.tax_system }}
+                  {% if form.tax_system.errors %}
+                  <div class="invalid-feedback d-block">
+                    {{ form.tax_system.errors }}
+                  </div>
+                  {% endif %}
+                </div>
+
+                <div class="mb-3" id="tax_group_container">
+                  <label for="{{ form.tax_group.id_for_label }}">{{ form.tax_group.label }}</label>
+                  {{ form.tax_group }}
+                  {% if form.tax_group.errors %}
+                  <div class="invalid-feedback d-block">
+                    {{ form.tax_group.errors }}
+                  </div>
+                  {% endif %}
+                </div>
+
+                <div class="mb-3">
+                  <label for="{{ form.tax_rate.id_for_label }}">{{ form.tax_rate.label }}</label>
+                  {{ form.tax_rate }}
+                  {% if form.tax_rate.errors %}
+                  <div class="invalid-feedback d-block">
+                    {{ form.tax_rate.errors }}
+                  </div>
+                  {% endif %}
+                </div>
+
+                <div class="mb-3">
+                  <label for="{{ form.esv_rate.id_for_label }}">{{ form.esv_rate.label }}</label>
+                  {{ form.esv_rate }}
+                  {% if form.esv_rate.errors %}
+                  <div class="invalid-feedback d-block">
+                    {{ form.esv_rate.errors }}
+                  </div>
+                  {% endif %}
+                </div>
+
+                <div class="form-check mb-3">
+                  {{ form.is_vat_payer }}
+                  <label class="form-check-label" for="{{ form.is_vat_payer.id_for_label }}">
+                    {{ form.is_vat_payer.label }}
+                  </label>
+                  {% if form.is_vat_payer.errors %}
+                  <div class="invalid-feedback d-block">
+                    {{ form.is_vat_payer.errors }}
+                  </div>
+                  {% endif %}
+                </div>
+
+                <div class="mb-3" id="vat_number_container">
+                  <label for="{{ form.vat_registration_number.id_for_label }}">{{ form.vat_registration_number.label }}</label>
+                  {{ form.vat_registration_number }}
+                  {% if form.vat_registration_number.errors %}
+                  <div class="invalid-feedback d-block">
+                    {{ form.vat_registration_number.errors }}
+                  </div>
+                  {% endif %}
+                </div>
+
+                <div class="form-check mb-3">
+                  {{ form.is_active }}
+                  <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                    {{ form.is_active.label }}
+                  </label>
+                  {% if form.is_active.errors %}
+                  <div class="invalid-feedback d-block">
+                    {{ form.is_active.errors }}
+                  </div>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+
+            <div class="d-flex justify-content-between mt-4">
+              <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> Зберегти
+              </button>
+              <a href="{% url 'taxpayer_list' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-times"></i> Скасувати
+              </a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Початкове налаштування
+    updateTaxGroupVisibility();
+    updateVatNumberVisibility();
+    updateTaxRateChoices();
+
+    // Додаємо слухачі подій
+    document.getElementById('tax_system').addEventListener('change', updateTaxGroupVisibility);
+    document.getElementById('tax_system').addEventListener('change', updateTaxRateChoices);
+    document.getElementById('tax_group').addEventListener('change', updateTaxRateChoices);
+    document.getElementById('id_is_vat_payer').addEventListener('change', updateVatNumberVisibility);
+  });
+
+  function updateTaxGroupVisibility() {
+    const taxSystem = document.getElementById('tax_system').value;
+    const taxGroupContainer = document.getElementById('tax_group_container');
+
+    if (taxSystem === 'simplified') {
+      taxGroupContainer.style.display = 'block';
+    } else {
+      taxGroupContainer.style.display = 'none';
+    }
+  }
+
+  function updateVatNumberVisibility() {
+    const isVatPayer = document.getElementById('id_is_vat_payer').checked;
+    const vatNumberContainer = document.getElementById('vat_number_container');
+
+    if (isVatPayer) {
+      vatNumberContainer.style.display = 'block';
+    } else {
+      vatNumberContainer.style.display = 'none';
+    }
+  }
+
+  function updateTaxRateChoices() {
+    const taxSystem = document.getElementById('tax_system').value;
+    const taxGroup = document.getElementById('tax_group').value;
+    const taxRateSelect = document.getElementById('id_tax_rate');
+
+    // Отримуємо варіанти через AJAX
+    let url = "{% url 'ajax_tax_rate_choices' %}?tax_system=" + taxSystem;
+    if (taxSystem === 'simplified' && taxGroup) {
+      url += "&tax_group=" + taxGroup;
+    }
+
+    fetch(url)
+      .then(response => response.json())
+      .then(data => {
+        // Очищаємо поточні варіанти
+        taxRateSelect.innerHTML = '';
+
+        // Додаємо нові варіанти
+        data.choices.forEach(choice => {
+          const option = document.createElement('option');
+          option.value = choice.value;
+          option.text = choice.label;
+          taxRateSelect.add(option);
+        });
+
+        // Встановлюємо перший варіант за замовчуванням, якщо є варіанти
+        if (data.choices.length > 0) {
+          taxRateSelect.value = data.choices[0].value;
+        }
+      })
+      .catch(error => {
+        console.error('Помилка отримання варіантів ставки податку:', error);
+      });
+  }
+</script>
+{% endblock %}

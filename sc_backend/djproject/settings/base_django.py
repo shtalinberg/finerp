@@ -36,7 +36,7 @@ sys.path.insert(1, MANAGE_ROOT)
 SECRET_KEY = "django-insecure-@71o$6s6b=j*qabg78#(=*20#isbk5v4)rx&l369vq5(gnt&!*"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
 ALLOWED_HOSTS = []
 
@@ -49,6 +49,13 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    'django_filters',
+    'banks',
+    'currencies',
+    'taxpayers',
+    'finops',
+    'income_book',
+    'tax_reports',
     "privat24api",
 ]
 
@@ -75,6 +82,10 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                # our custom context processors
+                # 'core.context_processors.notifications',
+                'core.context_processors.taxpayers',
+                'core.context_processors.current_date',
             ],
         },
     },

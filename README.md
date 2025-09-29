@@ -38,7 +38,7 @@ repo_root/                     # Project root directory
 │   ├── local.pip              # Local development dependencies
 │── sc_backend/                       # Main source code directory
 │   ├── djapps/                # All our Django applications
-│   │   ├── bstore/                 # bstore app
+│   │   ├── finops/                 # bstore app
 │   ├── djproject/             # Django project configuration (settings, URLs, etc.)
 │   ├── manage.py
 │── .gitignore

@@ -1,0 +1,177 @@
+
+{% extends 'base.html' %}
+
+{% block title %}FineRP - {% if form.instance.pk %}Редагування запису{% else %}Новий запис{% endif %}{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="card">
+        <div class="card-header">
+          <h4>{% if form.instance.pk %}Редагувати запис доходу{% else %}Новий запис доходу{% endif %}</h4>
+        </div>
+        <div class="card-body">
+          <form method="post">
+            {% csrf_token %}
+
+            {% if form.taxpayer.field.widget.attrs.disabled != 'disabled' %}
+              <div class="mb-3">
+                <label for="{{ form.taxpayer.id_for_label }}">{{ form.taxpayer.label }}</label>
+                {{ form.taxpayer }}
+                {% if form.taxpayer.errors %}
+                <div class="invalid-feedback d-block">
+                  {{ form.taxpayer.errors }}
+                </div>
+                {% endif %}
+              </div>
+            {% else %}
+              <input type="hidden" name="taxpayer" value="{{ form.taxpayer.value }}">
+              <div class="mb-3">
+                <label>{{ form.taxpayer.label }}</label>
+                <input type="text" class="form-control" value="{{ form.taxpayer.value }}" disabled>
+              </div>
+            {% endif %}
+
+            <div class="mb-3">
+              <label for="{{ form.date.id_for_label }}">{{ form.date.label }}</label>
+              {{ form.date }}
+              {% if form.date.errors %}
+              <div class="invalid-feedback d-block">
+                {{ form.date.errors }}
+              </div>
+              {% endif %}
+            </div>
+
+            <div class="mb-3">
+              <label for="{{ form.document_number.id_for_label }}">{{ form.document_number.label }}</label>
+              {{ form.document_number }}
+              {% if form.document_number.errors %}
+              <div class="invalid-feedback d-block">
+                {{ form.document_number.errors }}
+              </div>
+              {% endif %}
+            </div>
+
+            <div class="mb-3">
+              <label for="{{ form.amount.id_for_label }}">{{ form.amount.label }}</label>
+              {{ form.amount }}
+              {% if form.amount.errors %}
+              <div class="invalid-feedback d-block">
+                {{ form.amount.errors }}
+              </div>
+              {% endif %}
+            </div>
+
+            <div class="mb-3">
+              <label for="{{ form.income_type.id_for_label }}">{{ form.income_type.label }}</label>
+              {{ form.income_type }}
+              {% if form.income_type.errors %}
+              <div class="invalid-feedback d-block">
+                {{ form.income_type.errors }}
+              </div>
+              {% endif %}
+            </div>
+
+            <div class="mb-3">
+              <label for="{{ form.description.id_for_label }}">{{ form.description.label }}</label>
+              {{ form.description }}
+              {% if form.description.errors %}
+              <div class="invalid-feedback d-block">
+                {{ form.description.errors }}
+              </div>
+              {% endif %}
+            </div>
+
+            <div class="mb-3">
+              <label for="{{ form.notes.id_for_label }}">{{ form.notes.label }}</label>
+              {{ form.notes }}
+              {% if form.notes.errors %}
+              <div class="invalid-feedback d-block">
+                {{ form.notes.errors }}
+              </div>
+              {% endif %}
+            </div>
+
+            <div class="mb-3">
+              <label for="{{ form.finop.id_for_label }}">{{ form.finop.label }}</label>
+              {{ form.finop }}
+              {% if form.finop.errors %}
+              <div class="invalid-feedback d-block">
+                {{ form.finop.errors }}
+              </div>
+              {% endif %}
+            </div>
+
+            <div class="d-flex justify-content-between mt-4">
+              <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> Зберегти
+              </button>
+              <a href="{% url 'income_book_list' %}{% if form.instance.taxpayer %}?taxpayer={{ form.instance.taxpayer.id }}{% endif %}" class="btn btn-outline-secondary">
+                <i class="fas fa-times"></i> Скасувати
+              </a>
+            </div>
+          </form>
+
+          {% if finop %}
+            <div class="alert alert-info mt-4">
+              <h5>Дані з фінансової операції</h5>
+              <p>Дата: {{ finop.operation_date|date:"d.m.Y" }}</p>
+              <p>Сума: {{ finop.amount|floatformat:2 }} {{ finop.bank_account.currency.iso_code }}</p>
+              <p>Опис: {{ finop.description }}</p>
+              <p>Відправник: {{ finop.sender_name|default:"-" }}</p>
+              <button class="btn btn-sm btn-outline-primary"
+                      hx-get="{% url 'fill_from_finop' finop.id %}"
+                      hx-target="form"
+                      hx-swap="none">
+                Заповнити форму даними з фінансової операції
+              </button>
+            </div>
+          {% elif recent_finops %}
+            <div class="card mt-4">
+              <div class="card-header">
+                <h5>Останні необроблені фінансові операції</h5>
+              </div>
+              <div class="card-body">
+                <div class="list-group">
+                  {% for finop in recent_finops %}
+                    <a href="#" class="list-group-item list-group-item-action"
+                       hx-get="{% url 'fill_from_finop' finop.id %}"
+                       hx-target="form"
+                       hx-swap="none">
+                      <div class="d-flex w-100 justify-content-between">
+                        <h5 class="mb-1">{{ finop.amount|floatformat:2 }} {{ finop.bank_account.currency.iso_code }}</h5>
+                        <small>{{ finop.operation_date|date:"d.m.Y" }}</small>
+                      </div>
+                      <p class="mb-1">{{ finop.description|truncatechars:100 }}</p>
+                      <small>{{ finop.sender_name|default:"" }}</small>
+                    </a>
+                  {% endfor %}
+                </div>
+              </div>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Обробка події заповнення даних з фінансової операції
+    document.body.addEventListener('htmx:afterSwap', function(event) {
+      if (event.detail.target.tagName === 'FORM') {
+        // Оновлюємо вибране значення фінансової операції у випадаючому списку
+        const finopSelect = document.getElementById('{{ form.finop.id_for_label }}');
+        const finopId = event.detail.xhr.responseText.match(/"finop":\s*(\d+)/);
+        if (finopSelect && finopId && finopId[1]) {
+          finopSelect.value = finopId[1];
+        }
+      }
+    });
+  });
+</script>
+{% endblock %}

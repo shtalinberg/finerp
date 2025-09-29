@@ -1,0 +1,12 @@
+<div class="alert alert-success">
+    <h5><i class="fas fa-check-circle"></i> Запис успішно створено</h5>
+    <p>Фінансову операцію успішно оброблено та додано до книги доходів.</p>
+    <div class="mt-3">
+      <a href="{% url 'income_record_detail' income_record.id %}" class="btn btn-primary">
+        Переглянути запис
+      </a>
+      <a href="{% url 'income_book_list' %}?taxpayer={{ income_record.taxpayer.id }}" class="btn btn-outline-secondary">
+        До списку записів
+      </a>
+    </div>
+  </div>

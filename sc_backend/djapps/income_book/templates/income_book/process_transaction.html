@@ -1,0 +1,92 @@
+<!-- sc_backend/templates/income_book/process_transaction.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="card">
+        <div class="card-header">
+          <h4>Обробити транзакцію у книгу доходів</h4>
+        </div>
+        <div class="card-body">
+          <div class="alert alert-info">
+            <h5>Дані транзакції</h5>
+            <table class="table">
+              <tr>
+                <th>Дата</th>
+                <td>{{ transaction.transaction_date|date:"d.m.Y H:i" }}</td>
+              </tr>
+              <tr>
+                <th>Сума</th>
+                <td>{{ transaction.amount|floatformat:2 }} {{ transaction.bank_account.curency_iso }}</td>
+              </tr>
+              <tr>
+                <th>Опис</th>
+                <td>{{ transaction.description }}</td>
+              </tr>
+              <tr>
+                <th>Відправник</th>
+                <td>{{ transaction.sender_name }}</td>
+              </tr>
+              <tr>
+                <th>Отримувач</th>
+                <td>{{ transaction.recipient_name }}</td>
+              </tr>
+            </table>
+          </div>
+
+          <form method="post" hx-post="{% url 'process_transaction' transaction.id %}" hx-target="#result">
+            {% csrf_token %}
+
+            <div class="mb-3">
+              <label for="date">Дата</label>
+              <input type="date" name="date" id="date" class="form-control"
+                     value="{{ transaction.transaction_date|date:'Y-m-d' }}" required>
+            </div>
+
+            <div class="mb-3">
+              <label for="document_number">Номер документа</label>
+              <input type="text" name="document_number" id="document_number" class="form-control"
+                     value="Рах.№{{ transaction.bank_transaction_id }}" required>
+            </div>
+
+            <div class="mb-3">
+              <label for="amount">Сума</label>
+              <input type="number" name="amount" id="amount" class="form-control"
+                     value="{{ transaction.amount|floatformat:2 }}" step="0.01" required>
+            </div>
+
+            <div class="mb-3">
+              <label for="description">Опис</label>
+              <textarea name="description" id="description" class="form-control" rows="3" required>{{ transaction.description }}</textarea>
+            </div>
+
+            <div class="mb-3">
+              <label for="notes">Примітки</label>
+              <textarea name="notes" id="notes" class="form-control" rows="2"></textarea>
+            </div>
+
+            <div class="d-flex justify-content-between">
+              <div>
+                <button type="submit" class="btn btn-primary">
+                  <span class="spinner-border spinner-border-sm htmx-indicator" role="status" aria-hidden="true"></span>
+                  Зберегти як дохід
+                </button>
+                <button type="submit" name="skip" value="1" class="btn btn-outline-secondary"
+                        hx-post="{% url 'process_transaction' transaction.id %}"
+                        hx-vals='{"skip": "1"}'>
+                  Пропустити (не дохід)
+                </button>
+              </div>
+              <a href="{% url 'transaction_list' %}" class="btn btn-outline-secondary">Скасувати</a>
+            </div>
+          </form>
+
+          <div id="result" class="mt-4"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

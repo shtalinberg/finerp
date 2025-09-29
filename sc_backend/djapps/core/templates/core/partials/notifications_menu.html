@@ -1,0 +1,42 @@
+
+<li class="nav-item dropdown">
+    <a class="nav-link dropdown-toggle" href="#" id="notificationsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+      <i class="fas fa-bell"></i>
+      {% if unread_notifications_count > 0 %}
+        <span class="badge rounded-pill bg-danger">{{ unread_notifications_count }}</span>
+      {% endif %}
+    </a>
+    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="notificationsDropdown" style="width: 320px;">
+      <li><h6 class="dropdown-header">Сповіщення</h6></li>
+
+      {% if unread_notifications %}
+        {% for notification in unread_notifications %}
+          <li>
+            <a class="dropdown-item" href="#"
+               hx-post="{% url 'notification_read' notification.id %}"
+               hx-target="#notificationsDropdown"
+               hx-swap="outerHTML">
+              <div class="d-flex w-100 justify-content-between">
+                <h6 class="mb-1">{{ notification.title }}</h6>
+                <small>{{ notification.created_at|date:"d.m.Y" }}</small>
+              </div>
+              <small class="text-muted">{{ notification.message|truncatechars:50 }}</small>
+              {% if notification.theme == 'success' %}
+                <span class="badge bg-success">{{ notification.get_notification_type_display }}</span>
+              {% elif notification.theme == 'warning' %}
+                <span class="badge bg-warning">{{ notification.get_notification_type_display }}</span>
+              {% elif notification.theme == 'error' %}
+                <span class="badge bg-danger">{{ notification.get_notification_type_display }}</span>
+              {% else %}
+                <span class="badge bg-info">{{ notification.get_notification_type_display }}</span>
+              {% endif %}
+            </a>
+          </li>
+        {% endfor %}
+        <li><hr class="dropdown-divider"></li>
+        <li><a class="dropdown-item text-center" href="{% url 'notification_list' %}">Усі сповіщення</a></li>
+      {% else %}
+        <li><div class="dropdown-item text-center">Немає нових сповіщень</div></li>
+      {% endif %}
+    </ul>
+  </li>

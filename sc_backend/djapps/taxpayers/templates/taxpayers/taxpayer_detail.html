@@ -1,0 +1,254 @@
+
+{% extends 'base.html' %}
+
+{% block title %}FineRP - {{ taxpayer.full_name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>{{ taxpayer.full_name }}</h1>
+    <div>
+      <a href="{% url 'taxpayer_update' taxpayer.id %}" class="btn btn-primary">
+        <i class="fas fa-edit"></i> Редагувати
+      </a>
+      <a href="{% url 'taxpayer_list' %}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left"></i> Назад до списку
+      </a>
+    </div>
+  </div>
+
+  <!-- Статус -->
+  {% if not taxpayer.is_active %}
+    <div class="alert alert-danger mb-4">
+      <h5 class="alert-heading">Неактивний ФОП</h5>
+      <p>Цей платник податків не є активним.</p>
+    </div>
+  {% endif %}
+
+  <div class="row">
+    <div class="col-md-6">
+      <div class="card mb-4">
+        <div class="card-header">
+          <h5>Основна інформація</h5>
+        </div>
+        <div class="card-body">
+          <table class="table table-borderless">
+            <tr>
+              <th style="width: 35%">Повне ім'я:</th>
+              <td>{{ taxpayer.full_name }}</td>
+            </tr>
+            <tr>
+              <th>ІПН:</th>
+              <td>{{ taxpayer.tax_number }}</td>
+            </tr>
+            <tr>
+              <th>Реєстраційний номер:</th>
+              <td>{{ taxpayer.registration_number|default:"-" }}</td>
+            </tr>
+            <tr>
+              <th>Дата реєстрації:</th>
+              <td>{{ taxpayer.registration_date|date:"d.m.Y" }}</td>
+            </tr>
+            <tr>
+              <th>Статус:</th>
+              <td>
+                {% if taxpayer.is_active %}
+                  <span class="badge bg-success">Активний</span>
+                {% else %}
+                  <span class="badge bg-danger">Неактивний</span>
+                {% endif %}
+              </td>
+            </tr>
+          </table>
+        </div>
+      </div>
+
+      <div class="card mb-4">
+        <div class="card-header">
+          <h5>Адреса</h5>
+        </div>
+        <div class="card-body">
+          <address>
+            {{ taxpayer.address.postal_code }}, {{ taxpayer.address.region }}, {{ taxpayer.address.city }}<br>
+            вул. {{ taxpayer.address.street }}, {{ taxpayer.address.house_number }}
+            {% if taxpayer.address.apartment %}, кв./офіс {{ taxpayer.address.apartment }}{% endif %}
+          </address>
+        </div>
+      </div>
+
+      <!-- Документи -->
+      <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">Документи</h5>
+          <a href="{% url 'taxpayer_document_create' taxpayer.id %}" class="btn btn-sm btn-primary">
+            <i class="fas fa-plus"></i> Додати документ
+          </a>
+        </div>
+        <div class="card-body">
+          {% if documents %}
+            <div class="list-group">
+              {% for document in documents %}
+                <div class="list-group-item">
+                  <div class="d-flex w-100 justify-content-between">
+                    <h5 class="mb-1">{{ document.title }}</h5>
+                    <small>{{ document.created_at|date:"d.m.Y" }}</small>
+                  </div>
+                  <p class="mb-1">{{ document.document_type }}</p>
+                  {% if document.issue_date or document.expiry_date %}
+                    <p class="mb-1">
+                      {% if document.issue_date %}
+                        <small>Видано: {{ document.issue_date|date:"d.m.Y" }}</small>
+                      {% endif %}
+                      {% if document.expiry_date %}
+                        <small>Дійсний до: {{ document.expiry_date|date:"d.m.Y" }}</small>
+                      {% endif %}
+                    </p>
+                  {% endif %}
+                  <div class="d-flex justify-content-between align-items-center">
+                    <a href="{{ document.file.url }}" class="btn btn-sm btn-outline-primary" target="_blank">
+                      <i class="fas fa-file"></i> Переглянути
+                    </a>
+                    <button class="btn btn-sm btn-outline-danger"
+                            hx-delete="{% url 'taxpayer_document_delete' document.id %}"
+                            hx-confirm="Ви впевнені, що хочете видалити цей документ?"
+                            hx-target="closest .list-group-item"
+                            hx-swap="outerHTML swap:1s">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="alert alert-info">
+              Немає документів. <a href="{% url 'taxpayer_document_create' taxpayer.id %}">Додати перший документ</a>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="card mb-4">
+        <div class="card-header">
+          <h5>Податкова інформація</h5>
+        </div>
+        <div class="card-body">
+          <table class="table table-borderless">
+            <tr>
+              <th style="width: 35%">Система оподаткування:</th>
+              <td>
+                {% if taxpayer.tax_system == 'simplified' %}
+                  Єдиний податок (спрощена система)
+                {% else %}
+                  Загальна система
+                {% endif %}
+              </td>
+            </tr>
+            {% if taxpayer.tax_system == 'simplified' %}
+            <tr>
+              <th>Група:</th>
+              <td>{{ taxpayer.get_tax_group_display }}</td>
+            </tr>
+            {% endif %}
+            <tr>
+              <th>Ставка податку:</th>
+              <td>{{ taxpayer.tax_rate }}%</td>
+            </tr>
+            <tr>
+              <th>Ставка ЄСВ:</th>
+              <td>{{ taxpayer.esv_rate }}%</td>
+            </tr>
+            <tr>
+              <th>Платник ПДВ:</th>
+              <td>
+                {% if taxpayer.is_vat_payer %}
+                  <span class="badge bg-success">Так</span>
+                {% else %}
+                  <span class="badge bg-secondary">Ні</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% if taxpayer.is_vat_payer %}
+            <tr>
+              <th>Номер свідоцтва ПДВ:</th>
+              <td>{{ taxpayer.vat_registration_number }}</td>
+            </tr>
+            {% endif %}
+          </table>
+        </div>
+      </div>
+
+      <!-- Налаштування -->
+      <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">Налаштування</h5>
+          <a href="{% url 'taxpayer_settings_update' taxpayer.id %}" class="btn btn-sm btn-primary">
+            <i class="fas fa-cog"></i> Змінити
+          </a>
+        </div>
+        <div class="card-body">
+          <table class="table table-borderless">
+            <tr>
+              <th style="width: 60%">Автоматична категоризація:</th>
+              <td>
+                {% if settings.auto_categorize %}
+                  <span class="badge bg-success">Увімкнено</span>
+                {% else %}
+                  <span class="badge bg-secondary">Вимкнено</span>
+                {% endif %}
+              </td>
+            </tr>
+            <tr>
+              <th>Автоматична обробка доходів:</th>
+              <td>
+                {% if settings.auto_process_income %}
+                  <span class="badge bg-success">Увімкнено</span>
+                {% else %}
+                  <span class="badge bg-secondary">Вимкнено</span>
+                {% endif %}
+              </td>
+            </tr>
+            <tr>
+              <th>Нагадування про податки:</th>
+              <td>{{ settings.tax_reminder_days }} днів</td>
+            </tr>
+            <tr>
+              <th>Частота синхронізації:</th>
+              <td>{{ settings.sync_frequency_days }} днів</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+
+      <!-- Швидкі дії -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <h5>Швидкі дії</h5>
+        </div>
+        <div class="card-body">
+          <div class="d-grid gap-2">
+            <a href="{% url 'income_book_list' %}?taxpayer={{ taxpayer.id }}" class="btn btn-outline-primary">
+              <i class="fas fa-book"></i> Переглянути книгу доходів
+              {% if income_records_count %}<span class="badge bg-primary">{{ income_records_count }}</span>{% endif %}
+            </a>
+            <a href="{% url 'tax_report_list' %}?taxpayer={{ taxpayer.id }}" class="btn btn-outline-success">
+              <i class="fas fa-file-invoice"></i> Податкові звіти
+              {% if tax_reports_count %}<span class="badge bg-success">{{ tax_reports_count }}</span>{% endif %}
+            </a>
+            <a href="{% url 'finop_list' %}?taxpayer={{ taxpayer.id }}" class="btn btn-outline-info">
+              <i class="fas fa-exchange-alt"></i> Фінансові операції
+              {% if income_count or expense_count %}
+                <span class="badge bg-success">{{ income_count }}</span> / <span class="badge bg-danger">{{ expense_count }}</span>
+              {% endif %}
+            </a>
+            <a href="{% url 'sync_finops' %}?taxpayer={{ taxpayer.id }}" class="btn btn-outline-secondary">
+              <i class="fas fa-sync"></i> Синхронізувати операції
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

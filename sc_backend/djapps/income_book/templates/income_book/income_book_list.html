@@ -1,0 +1,233 @@
+{% extends 'base.html' %}
+
+{% block title %}FineRP - Книга доходів{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Книга доходів</h1>
+    <a href="{% url 'income_record_create' %}{% if selected_taxpayer %}?taxpayer={{ selected_taxpayer.id }}{% endif %}" class="btn btn-primary">
+      <i class="fas fa-plus"></i> Додати запис
+    </a>
+  </div>
+
+  {% if not selected_taxpayer %}
+    <div class="alert alert-warning mb-4">
+      <h5 class="alert-heading">Виберіть ФОП</h5>
+      <p>Щоб побачити записи книги доходів, виберіть ФОП з випадаючого списку в шапці сторінки.</p>
+    </div>
+  {% else %}
+    <!-- Квартальний огляд -->
+    <div class="card mb-4">
+      <div class="card-header">
+        <h5>Сумарні доходи {{ current_year }} року</h5>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          {% for quarter in quarters %}
+            <div class="col-md-3">
+              <div class="card {% if quarter.is_current %}border-primary{% endif %}">
+                <div class="card-body text-center">
+                  <h5 class="card-title">
+                    {% if quarter.is_current %}<i class="fas fa-calendar-check text-primary"></i>{% endif %}
+                    Квартал {{ quarter.number }}
+                  </h5>
+                  <p class="card-text">
+                    {{ quarter.start_date|date:"d.m.Y" }} - {{ quarter.end_date|date:"d.m.Y" }}
+                  </p>
+                  <h3 class="mb-0 {% if quarter.total > 0 %}text-success{% else %}text-muted{% endif %}">
+                    {{ quarter.total|floatformat:2 }} ₴
+                  </h3>
+                  <div class="mt-2">
+                    <a href="{% url 'income_book_list' %}?taxpayer={{ selected_taxpayer.id }}&date_from={{ quarter.start_date|date:'Y-m-d' }}&date_to={{ quarter.end_date|date:'Y-m-d' }}"
+                       class="btn btn-sm btn-outline-primary">
+                      Показати записи
+                    </a>
+                    <a href="{% url 'tax_report_preview' quarter.number %}?taxpayer={{ selected_taxpayer.id }}"
+                       class="btn btn-sm btn-outline-secondary">
+                      Розрахунок податків
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Фільтри -->
+    <div class="card mb-4">
+      <div class="card-header">
+        <h5>Фільтри</h5>
+      </div>
+      <div class="card-body">
+        <form id="filter-form" hx-get="{% url 'income_book_list' %}" hx-target="#income-records" hx-swap="innerHTML">
+          <input type="hidden" name="taxpayer" value="{{ selected_taxpayer.id }}">
+          <div class="row">
+            <div class="col-md-3">
+              <label for="date_from">З дати</label>
+              <input type="date" name="date_from" id="date_from" class="form-control"
+                     value="{{ request.GET.date_from|default:'' }}">
+            </div>
+
+            <div class="col-md-3">
+              <label for="date_to">До дати</label>
+              <input type="date" name="date_to" id="date_to" class="form-control"
+                     value="{{ request.GET.date_to|default:'' }}">
+            </div>
+
+            <div class="col-md-3">
+              <label for="income_type">Тип доходу</label>
+              <select name="income_type" id="income_type" class="form-select" hx-trigger="change">
+                <option value="">Усі типи</option>
+                {% for value, label in income_types %}
+                  <option value="{{ value }}" {% if request.GET.income_type == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="col-md-3">
+              <label for="status">Статус</label>
+              <select name="status" id="status" class="form-select" hx-trigger="change">
+                <option value="active" {% if request.GET.status == 'active' or not request.GET.status %}selected{% endif %}>Активні</option>
+                <option value="cancelled" {% if request.GET.status == 'cancelled' %}selected{% endif %}>Скасовані</option>
+                <option value="adjusted" {% if request.GET.status == 'adjusted' %}selected{% endif %}>Скориговані</option>
+                <option value="">Усі</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="row mt-3">
+            <div class="col-md-6">
+              <label for="search">Пошук</label>
+              <input type="text" name="search" id="search" class="form-control"
+                     value="{{ request.GET.search|default:'' }}" placeholder="Пошук у описі...">
+            </div>
+
+            <div class="col-md-6 d-flex align-items-end">
+              <button type="submit" class="btn btn-primary mt-auto">
+                <span class="spinner-border spinner-border-sm htmx-indicator" role="status" aria-hidden="true"></span>
+                Застосувати фільтри
+              </button>
+              <button type="button" class="btn btn-outline-secondary mt-auto ml-2"
+                      hx-get="{% url 'income_book_list' %}?taxpayer={{ selected_taxpayer.id }}"
+                      hx-target="#income-records">
+                Скинути
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Список записів доходів -->
+    <div id="income-records">
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">Записи доходів</h5>
+          <h5 class="mb-0 text-success">Сума: {{ total_income|floatformat:2 }} ₴</h5>
+        </div>
+        <div class="card-body">
+          {% if records %}
+            <div class="table-responsive">
+              <table class="table table-striped">
+                <thead>
+                  <tr>
+                    <th>Дата</th>
+                    <th>№ документа</th>
+                    <th>Сума</th>
+                    <th>Тип</th>
+                    <th>Опис</th>
+                    <th>Статус</th>
+                    <th>Дії</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for record in records %}
+                    <tr class="{% if record.status == 'cancelled' %}table-danger{% elif record.status == 'adjusted' %}table-warning{% endif %}">
+                      <td>{{ record.date|date:"d.m.Y" }}</td>
+                      <td>{{ record.document_number }}</td>
+                      <td class="text-success">{{ record.amount|floatformat:2 }} ₴</td>
+                      <td>{{ record.get_income_type_display }}</td>
+                      <td>{{ record.description|truncatechars:50 }}</td>
+                      <td>
+                        {% if record.status == 'active' %}
+                          <span class="badge bg-success">Активний</span>
+                        {% elif record.status == 'cancelled' %}
+                          <span class="badge bg-danger">Скасований</span>
+                        {% elif record.status == 'adjusted' %}
+                          <span class="badge bg-warning">Скоригований</span>
+                        {% endif %}
+                      </td>
+                      <td>
+                        <div class="btn-group">
+                          <a href="{% url 'income_record_detail' record.id %}"
+                             class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-eye"></i>
+                          </a>
+                          {% if record.status == 'active' %}
+                            <a href="{% url 'income_record_update' record.id %}"
+                               class="btn btn-sm btn-outline-secondary">
+                              <i class="fas fa-edit"></i>
+                            </a>
+                            <a href="{% url 'create_adjustment' record.id %}"
+                               class="btn btn-sm btn-outline-warning">
+                              <i class="fas fa-sync"></i>
+                            </a>
+                            <button class="btn btn-sm btn-outline-danger"
+                                    hx-delete="{% url 'income_record_delete' record.id %}"
+                                    hx-confirm="Ви впевнені, що хочете скасувати цей запис?"
+                                    hx-target="closest tr"
+                                    hx-swap="outerHTML swap:1s">
+                              <i class="fas fa-times"></i>
+                            </button>
+                          {% endif %}
+                        </div>
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+                <tfoot>
+                  <tr class="table-primary">
+                    <th colspan="2">Всього</th>
+                    <th class="text-success">{{ total_income|floatformat:2 }} ₴</th>
+                    <th colspan="4"></th>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+
+            {% include 'core/partials/pagination.html' with page_obj=page_obj %}
+
+          {% else %}
+            <div class="alert alert-info">
+              Записи не знайдено. Змініть фільтри або <a href="{% url 'income_record_create' %}?taxpayer={{ selected_taxpayer.id }}" class="alert-link">додайте новий запис</a>.
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Активація підказок
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+      return new bootstrap.Tooltip(tooltipTriggerEl)
+    });
+
+    // Автоматичне оновлення фільтрів при зміні селекторів
+    const changeFilters = document.querySelectorAll('select[hx-trigger="change"]');
+    changeFilters.forEach(function(filter) {
+      filter.addEventListener('change', function() {
+        document.getElementById('filter-form').dispatchEvent(new Event('submit'));
+      });
+    });
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,204 @@
+<!-- sc_backend/templates/tax_reports/tax_report_detail.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Податковий звіт: {{ report.period }}</h1>
+    <div>
+      <a href="{% url 'tax_report_list' %}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left"></i> Назад до списку
+      </a>
+      <a href="{% url 'tax_report_download' report.id %}" class="btn btn-success">
+        <i class="fas fa-download"></i> Завантажити звіт
+      </a>
+    </div>
+  </div>
+
+  <div class="row">
+    <!-- Tax Summary Card -->
+    <div class="col-md-6">
+      <div class="card mb-4">
+        <div class="card-header">
+          <h5>Сумарна інформація</h5>
+        </div>
+        <div class="card-body">
+          <table class="table">
+            <tr>
+              <th>Період</th>
+              <td>{{ report.period.year }} рік, {{ report.period.get_quarter_display }}</td>
+            </tr>
+            <tr>
+              <th>Дати періоду</th>
+              <td>{{ report.period.start_date|date:"d.m.Y" }} - {{ report.period.end_date|date:"d.m.Y" }}</td>
+            </tr>
+            <tr>
+              <th>Загальний дохід</th>
+              <td class="text-success fw-bold">{{ report.total_income|floatformat:2 }} ₴</td>
+            </tr>
+            <tr>
+              <th>Єдиний податок (5%)</th>
+              <td id="single-tax-status" {% if report.single_tax_paid %}class="text-success"{% endif %}>
+                {{ report.single_tax_amount|floatformat:2 }} ₴
+                {% if report.single_tax_paid %}
+                  <i class="fas fa-check-circle"></i> Сплачено
+                {% else %}
+                  <form hx-post="{% url 'tax_report_mark_paid' report.id %}"
+                        hx-target="#single-tax-status"
+                        hx-swap="outerHTML"
+                        class="d-inline">
+                    <input type="hidden" name="single_tax" value="1">
+                    <button type="submit" class="btn btn-sm btn-outline-success">
+                      Позначити як сплачений
+                    </button>
+                  </form>
+                {% endif %}
+              </td>
+            </tr>
+            <tr>
+              <th>Військовий збір (1%)</th>
+              <td id="military-tax-status" {% if report.military_tax_paid %}class="text-success"{% endif %}>
+                {{ report.military_tax_amount|floatformat:2 }} ₴
+                {% if report.military_tax_paid %}
+                  <i class="fas fa-check-circle"></i> Сплачено
+                {% else %}
+                  <form hx-post="{% url 'tax_report_mark_paid' report.id %}"
+                        hx-target="#military-tax-status"
+                        hx-swap="outerHTML"
+                        class="d-inline">
+                    <input type="hidden" name="military_tax" value="1">
+                    <button type="submit" class="btn btn-sm btn-outline-success">
+                      Позначити як сплачений
+                    </button>
+                  </form>
+                {% endif %}
+              </td>
+            </tr>
+            <tr>
+              <th>ЄСВ</th>
+              <td id="esv-status" {% if report.esv_paid %}class="text-success"{% endif %}>
+                {{ report.esv_amount|floatformat:2 }} ₴
+                {% if report.esv_paid %}
+                  <i class="fas fa-check-circle"></i> Сплачено
+                {% else %}
+                  <form hx-post="{% url 'tax_report_mark_paid' report.id %}"
+                        hx-target="#esv-status"
+                        hx-swap="outerHTML"
+                        class="d-inline">
+                    <input type="hidden" name="esv" value="1">
+                    <button type="submit" class="btn btn-sm btn-outline-success">
+                      Позначити як сплачений
+                    </button>
+                  </form>
+                {% endif %}
+              </td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Status Card -->
+    <div class="col-md-6">
+      <div class="card mb-4">
+        <div class="card-header">
+          <h5>Статус звіту</h5>
+        </div>
+        <div class="card-body">
+          <div class="mb-3">
+            <h4>
+              {% if report.status == 'draft' %}
+                <span class="badge bg-secondary">Чернетка</span>
+              {% elif report.status == 'calculated' %}
+                <span class="badge bg-primary">Розраховано</span>
+              {% elif report.status == 'submitted' %}
+                <span class="badge bg-warning">Подано</span>
+              {% elif report.status == 'paid' %}
+                <span class="badge bg-success">Сплачено</span>
+              {% endif %}
+            </h4>
+          </div>
+
+          {% if report.status == 'calculated' %}
+            <div class="alert alert-info">
+              <h5>Подання звіту</h5>
+              <p>Позначте звіт як поданий після надсилання до податкової:</p>
+              <form method="post" action="{% url 'tax_report_submit' report.id %}">
+                {% csrf_token %}
+                <div class="mb-3">
+                  <label for="submission_date">Дата подання</label>
+                  <input type="date" name="submission_date" id="submission_date"
+                         class="form-control" required>
+                </div>
+                <div class="mb-3">
+                  <label for="submission_number">Номер квитанції</label>
+                  <input type="text" name="submission_number" id="submission_number"
+                         class="form-control" required>
+                </div>
+                <button type="submit" class="btn btn-warning">
+                  Позначити як поданий
+                </button>
+              </form>
+            </div>
+          {% endif %}
+
+          {% if report.status == 'submitted' or report.status == 'paid' %}
+            <table class="table">
+              <tr>
+                <th>Дата подання</th>
+                <td>{{ report.submission_date|date:"d.m.Y" }}</td>
+              </tr>
+              <tr>
+                <th>Номер квитанції</th>
+                <td>{{ report.submission_number }}</td>
+              </tr>
+            </table>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Income Records -->
+  <div class="card">
+    <div class="card-header">
+      <h5>Записи доходів за період</h5>
+    </div>
+    <div class="card-body">
+      {% if income_records %}
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>Дата</th>
+              <th>Номер документа</th>
+              <th>Сума</th>
+              <th>Опис</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for record in income_records %}
+              <tr>
+                <td>{{ record.date|date:"d.m.Y" }}</td>
+                <td>{{ record.document_number }}</td>
+                <td class="text-success">{{ record.amount|floatformat:2 }} ₴</td>
+                <td>{{ record.description|truncatechars:100 }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+          <tfoot>
+            <tr class="table-primary">
+              <th colspan="2">Всього</th>
+              <th class="text-success">{{ report.total_income|floatformat:2 }} ₴</th>
+              <th></th>
+            </tr>
+          </tfoot>
+        </table>
+      {% else %}
+        <div class="alert alert-warning">
+          Немає записів доходів за цей період.
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -4,9 +4,7 @@ Privat24 API client for interacting with the banking API.
 import datetime
 import json
 import logging
-from typing import Any, Dict, List, Optional, Union
-
-from django.conf import settings
+from typing import Any, Dict, Optional, Union
 
 import requests
 import urllib3

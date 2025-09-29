@@ -1,0 +1,194 @@
+{% extends 'base.html' %}
+
+{% block title %}FineRP - Деталі запису{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Запис книги доходів</h1>
+    <div>
+      {% if record.status == 'active' %}
+        <a href="{% url 'income_record_update' record.id %}" class="btn btn-primary">
+          <i class="fas fa-edit"></i> Редагувати
+        </a>
+        <a href="{% url 'create_adjustment' record.id %}" class="btn btn-warning">
+          <i class="fas fa-sync"></i> Створити коригування
+        </a>
+      {% endif %}
+      <a href="{% url 'income_book_list' %}?taxpayer={{ record.taxpayer.id }}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left"></i> Назад до списку
+      </a>
+    </div>
+  </div>
+
+  {% if record.status == 'cancelled' %}
+    <div class="alert alert-danger mb-4">
+      <h5 class="alert-heading">Скасований запис</h5>
+      <p>Цей запис було скасовано. Він не використовується для розрахунку податків.</p>
+    </div>
+  {% endif %}
+
+  {% if record.status == 'adjusted' %}
+    <div class="alert alert-warning mb-4">
+      <h5 class="alert-heading">Скоригований запис</h5>
+      <p>Цей запис було скориговано. Для розрахунку податків використовується коригувальний запис.</p>
+      {% if adjustments %}
+        <hr>
+        <p>Коригувальні записи:</p>
+        <ul>
+          {% for adjustment in adjustments %}
+            <li>
+              <a href="{% url 'income_record_detail' adjustment.id %}">
+                {{ adjustment.date|date:"d.m.Y" }} - {{ adjustment.amount|floatformat:2 }} ₴
+              </a>
+            </li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    </div>
+  {% endif %}
+
+  {% if record.original_record %}
+    <div class="alert alert-info mb-4">
+      <h5 class="alert-heading">Коригувальний запис</h5>
+      <p>Це коригувальний запис для
+        <a href="{% url 'income_record_detail' record.original_record.id %}">
+          запису від {{ record.original_record.date|date:"d.m.Y" }}
+        </a>.
+      </p>
+    </div>
+  {% endif %}
+
+  <div class="row">
+    <div class="col-md-8">
+      <div class="card mb-4">
+        <div class="card-header">
+          <h5>Основна інформація</h5>
+        </div>
+        <div class="card-body">
+          <table class="table table-borderless">
+            <tr>
+              <th style="width: 35%">ФОП:</th>
+              <td>{{ record.taxpayer.full_name }}</td>
+            </tr>
+            <tr>
+              <th>Дата:</th>
+              <td>{{ record.date|date:"d.m.Y" }}</td>
+            </tr>
+            <tr>
+              <th>Номер документа:</th>
+              <td>{{ record.document_number }}</td>
+            </tr>
+            <tr>
+              <th>Сума:</th>
+              <td class="text-success">{{ record.amount|floatformat:2 }} ₴</td>
+            </tr>
+            <tr>
+              <th>Тип доходу:</th>
+              <td>{{ record.get_income_type_display }}</td>
+            </tr>
+            <tr>
+              <th>Опис:</th>
+              <td>{{ record.description }}</td>
+            </tr>
+            {% if record.notes %}
+              <tr>
+                <th>Примітки:</th>
+                <td>{{ record.notes }}</td>
+              </tr>
+            {% endif %}
+            <tr>
+              <th>Статус:</th>
+              <td>
+                {% if record.status == 'active' %}
+                  <span class="badge bg-success">Активний</span>
+                {% elif record.status == 'cancelled' %}
+                  <span class="badge bg-danger">Скасований</span>
+                {% elif record.status == 'adjusted' %}
+                  <span class="badge bg-warning">Скоригований</span>
+                {% endif %}
+              </td>
+            </tr>
+            <tr>
+              <th>Створено:</th>
+              <td>{{ record.created_at|date:"d.m.Y H:i" }}</td>
+            </tr>
+            {% if record.updated_at != record.created_at %}
+              <tr>
+                <th>Оновлено:</th>
+                <td>{{ record.updated_at|date:"d.m.Y H:i" }}</td>
+              </tr>
+            {% endif %}
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      {% if record.finop %}
+        <div class="card mb-4">
+          <div class="card-header">
+            <h5>Пов'язана фінансова операція</h5>
+          </div>
+          <div class="card-body">
+            <table class="table table-borderless">
+              <tr>
+                <th>Дата:</th>
+                <td>{{ record.finop.operation_date|date:"d.m.Y H:i" }}</td>
+              </tr>
+              <tr>
+                <th>Сума:</th>
+                <td>{{ record.finop.amount|floatformat:2 }} {{ record.finop.bank_account.currency.iso_code }}</td>
+              </tr>
+              <tr>
+                <th>Банк:</th>
+                <td>{{ record.finop.bank_account.bank.name }}</td>
+              </tr>
+              <tr>
+                <th>Рахунок:</th>
+                <td>{{ record.finop.bank_account.acc_iban }}</td>
+              </tr>
+              <tr>
+                <th>Опис:</th>
+                <td>{{ record.finop.description|truncatechars:100 }}</td>
+              </tr>
+            </table>
+            <a href="{% url 'finop_detail' record.finop.id %}" class="btn btn-sm btn-outline-primary">
+              Переглянути операцію
+            </a>
+          </div>
+        </div>
+      {% endif %}
+
+      <div class="card mb-4">
+        <div class="card-header">
+          <h5>Дії</h5>
+        </div>
+        <div class="card-body">
+          <div class="d-grid gap-2">
+            {% if record.status == 'active' %}
+              <a href="{% url 'income_record_update' record.id %}" class="btn btn-outline-primary">
+                <i class="fas fa-edit"></i> Редагувати запис
+              </a>
+              <a href="{% url 'create_adjustment' record.id %}" class="btn btn-outline-warning">
+                <i class="fas fa-sync"></i> Створити коригування
+              </a>
+              <button class="btn btn-outline-danger"
+                      hx-delete="{% url 'income_record_delete' record.id %}"
+                      hx-confirm="Ви впевнені, що хочете скасувати цей запис?"
+                      hx-target="body"
+                      hx-swap="none"
+                      hx-push-url="true">
+                <i class="fas fa-times"></i> Скасувати запис
+              </button>
+            {% endif %}
+            <a href="{% url 'income_book_list' %}?taxpayer={{ record.taxpayer.id }}&date_from={{ record.date|date:'Y-m-d' }}&date_to={{ record.date|date:'Y-m-d' }}" class="btn btn-outline-secondary">
+              <i class="fas fa-list"></i> Показати записи за цю дату
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

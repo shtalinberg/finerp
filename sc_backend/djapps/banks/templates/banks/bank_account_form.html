@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+
+{% block title %}FineRP - {% if form.instance.pk %}Редагування рахунку{% else %}Новий рахунок{% endif %}{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="card">
+        <div class="card-header">
+          <h4>{% if form.instance.pk %}Редагувати рахунок{% else %}Додати новий рахунок{% endif %}</h4>
+        </div>
+        <div class="card-body">
+          <form method="post">
+            {% csrf_token %}
+
+            <div class="mb-3">
+              <label for="{{ form.acc_iban.id_for_label }}">{{ form.acc_iban.label }}</label>
+              {{ form.acc_iban }}
+              {% if form.acc_iban.errors %}
+              <div class="invalid-feedback d-block">
+                {{ form.acc_iban.errors }}
+              </div>
+              {% endif %}
+              <div class="form-text">
+                Формат IBAN для України: UA + 27 символів
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label for="{{ form.bank.id_for_label }}">{{ form.bank.label }}</label>
+              {{ form.bank }}
+              {% if form.bank.errors %}
+              <div class="invalid-feedback d-block">
+                {{ form.bank.errors }}
+              </div>
+              {% endif %}
+              <div class="form-text">
+                <a href="{% url 'bank_create' %}" target="_blank">Додати новий банк</a>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label for="{{ form.account_type.id_for_label }}">{{ form.account_type.label }}</label>
+              {{ form.account_type }}
+              {% if form.account_type.errors %}
+              <div class="invalid-feedback d-block">
+                {{ form.account_type.errors }}
+              </div>
+              {% endif %}
+            </div>
+
+            <div class="mb-3">
+              <label for="{{ form.currency.id_for_label }}">{{ form.currency.label }}</label>
+              {{ form.currency }}
+              {% if form.currency.errors %}
+              <div class="invalid-feedback d-block">
+                {{ form.currency.errors }}
+              </div>
+              {% endif %}
+            </div>
+
+            <div class="mb-3">
+              <label for="{{ form.account_status.id_for_label }}">{{ form.account_status.label }}</label>
+              {{ form.account_status }}
+              {% if form.account_status.errors %}
+              <div class="invalid-feedback d-block">
+                {{ form.account_status.errors }}
+              </div>
+              {% endif %}
+            </div>
+
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <div class="form-check">
+                  {{ form.is_main }}
+                  <label class="form-check-label" for="{{ form.is_main.id_for_label }}">
+                    {{ form.is_main.label }}
+                  </label>
+                  {% if form.is_main.errors %}
+                  <div class="invalid-feedback d-block">
+                    {{ form.is_main.errors }}
+                  </div>
+                  {% endif %}
+                </div>
+              </div>
+
+              <div class="col-md-6">
+                <div class="form-check">
+                  {{ form.is_default }}
+                  <label class="form-check-label" for="{{ form.is_default.id_for_label }}">
+                    {{ form.is_default.label }}
+                  </label>
+                  {% if form.is_default.errors %}
+                  <div class="invalid-feedback d-block">
+                    {{ form.is_default.errors }}
+                  </div>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+
+            <div class="d-flex justify-content-between mt-4">
+              <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> Зберегти
+              </button>
+              <a href="{% url 'bank_account_list' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-times"></i> Скасувати
+              </a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Валідація IBAN
+    const ibanInput = document.getElementById('{{ form.acc_iban.id_for_label }}');
+    ibanInput.addEventListener('input', function(e) {
+      let value = e.target.value.trim().toUpperCase();
+
+      // Видаляємо всі пробіли
+      value = value.replace(/\s/g, '');
+
+      // Перевіряємо, що починається з UA
+      if (value.length >= 2 && value.substring(0, 2) !== 'UA') {
+        value = 'UA' + value.substring(2);
+      }
+
+      // Максимум 29 символів
+      if (value.length > 29) {
+        value = value.substring(0, 29);
+      }
+
+      // Оновлюємо значення
+      e.target.value = value;
+    });
+
+    // Швидкий додаток валюти (гривня)
+    const currencySelect = document.getElementById('{{ form.currency.id_for_label }}');
+
+    // Якщо розкриваючий список порожній, додати UAH
+    if (currencySelect.options.length === 0) {
+      const option = document.createElement('option');
+      option.value = '1';  // Припускаємо, що ID валюти гривня - 1
+      option.text = 'UAH - Гривня';
+      currencySelect.add(option);
+    }
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,32 @@
+
+<li class="nav-item dropdown">
+    <a class="nav-link dropdown-toggle" href="#" id="taxpayerDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+      {% if selected_taxpayer %}
+        {{ selected_taxpayer.full_name }}
+      {% else %}
+        Виберіть ФОП
+      {% endif %}
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="taxpayerDropdown">
+      {% if taxpayers_list %}
+        {% for taxpayer in taxpayers_list %}
+          <li>
+            <a class="dropdown-item {% if taxpayer == selected_taxpayer %}active{% endif %}"
+               href="?taxpayer={{ taxpayer.id }}">
+              {{ taxpayer.full_name }}
+              <br>
+              <small class="text-muted">{{ taxpayer.tax_number }}</small>
+            </a>
+          </li>
+        {% endfor %}
+        <li><hr class="dropdown-divider"></li>
+        <li><a class="dropdown-item" href="{% url 'taxpayer_create' %}">
+          <i class="fas fa-plus"></i> Додати ФОП
+        </a></li>
+      {% else %}
+        <li><a class="dropdown-item" href="{% url 'taxpayer_create' %}">
+          <i class="fas fa-plus"></i> Додати ФОП
+        </a></li>
+      {% endif %}
+    </ul>
+  </li>

@@ -1,0 +1,181 @@
+<!-- sc_backend/templates/tax_reports/tax_report_preview.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Попередній перегляд податкового звіту</h1>
+    <div>
+      <a href="{% url 'tax_report_list' %}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left"></i> Назад до списку
+      </a>
+    </div>
+  </div>
+
+  {% if existing_report %}
+    <div class="alert alert-warning">
+      <h5>Увага! Звіт вже існує</h5>
+      <p>Податковий звіт за цей період вже існує. Ви можете переглянути його або створити новий, який замінить існуючий.</p>
+      <div>
+        <a href="{% url 'tax_report_detail' existing_report.id %}" class="btn btn-primary">
+          Переглянути існуючий звіт
+        </a>
+      </div>
+    </div>
+  {% endif %}
+
+  <div class="card mb-4">
+    <div class="card-header">
+      <h5>Інформація про період</h5>
+    </div>
+    <div class="card-body">
+      <table class="table">
+        <tr>
+          <th>Рік</th>
+          <td>{{ year }}</td>
+        </tr>
+        <tr>
+          <th>Квартал</th>
+          <td>{{ quarter }}</td>
+        </tr>
+        <tr>
+          <th>Період</th>
+          <td>{{ period.start_date|date:"d.m.Y" }} - {{ period.end_date|date:"d.m.Y" }}</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-6">
+      <div class="card mb-4">
+        <div class="card-header">
+          <h5>Податковий розрахунок</h5>
+        </div>
+        <div class="card-body">
+          <table class="table">
+            <tr>
+              <th>Загальний дохід</th>
+              <td class="text-success fw-bold">{{ total_income|floatformat:2 }} ₴</td>
+            </tr>
+            <tr>
+              <th>Єдиний податок (5%)</th>
+              <td>{{ single_tax|floatformat:2 }} ₴</td>
+            </tr>
+            <tr>
+              <th>Військовий збір (1%)</th>
+              <td>{{ military_tax|floatformat:2 }} ₴</td>
+            </tr>
+            <tr>
+              <th>ЄСВ</th>
+              <td>{{ esv_amount|floatformat:2 }} ₴</td>
+            </tr>
+            <tr>
+              <th>Загальна сума податків</th>
+              <td class="text-danger fw-bold">{{ single_tax|add:military_tax|add:esv_amount|floatformat:2 }} ₴</td>
+            </tr>
+          </table>
+
+          <form method="post" class="mt-3">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-primary">
+              {% if existing_report %}Оновити звіт{% else %}Створити звіт{% endif %}
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="card mb-4">
+        <div class="card-header">
+          <h5>Інформація про строки сплати</h5>
+        </div>
+        <div class="card-body">
+          <div class="alert alert-info">
+            <h6>Єдиний податок (5%)</h6>
+            <p>Потрібно сплатити до:
+              {% if quarter == 1 %}
+                20 травня {{ year }}
+              {% elif quarter == 2 %}
+                20 серпня {{ year }}
+              {% elif quarter == 3 %}
+                20 листопада {{ year }}
+              {% else %}
+                20 лютого {{ year|add:1 }}
+              {% endif %}
+            </p>
+          </div>
+
+          <div class="alert alert-info">
+            <h6>Військовий збір (1%)</h6>
+            <p>Потрібно сплатити до:
+              {% if quarter == 1 %}
+                20 травня {{ year }}
+              {% elif quarter == 2 %}
+                20 серпня {{ year }}
+              {% elif quarter == 3 %}
+                20 листопада {{ year }}
+              {% else %}
+                20 лютого {{ year|add:1 }}
+              {% endif %}
+            </p>
+          </div>
+
+          <div class="alert alert-info">
+            <h6>ЄСВ</h6>
+            <p>Потрібно сплатити до:</p>
+            <ul>
+              <li>За 1-й місяць кварталу: до 20 числа наступного місяця</li>
+              <li>За 2-й місяць кварталу: до 20 числа наступного місяця</li>
+              <li>За 3-й місяць кварталу: до 20 числа наступного місяця</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Income Records -->
+  <div class="card">
+    <div class="card-header">
+      <h5>Записи доходів за період</h5>
+    </div>
+    <div class="card-body">
+      {% if income_records %}
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>Дата</th>
+              <th>Номер документа</th>
+              <th>Сума</th>
+              <th>Опис</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for record in income_records %}
+              <tr>
+                <td>{{ record.date|date:"d.m.Y" }}</td>
+                <td>{{ record.document_number }}</td>
+                <td class="text-success">{{ record.amount|floatformat:2 }} ₴</td>
+                <td>{{ record.description|truncatechars:100 }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+          <tfoot>
+            <tr class="table-primary">
+              <th colspan="2">Всього</th>
+              <th class="text-success">{{ total_income|floatformat:2 }} ₴</th>
+              <th></th>
+            </tr>
+          </tfoot>
+        </table>
+      {% else %}
+        <div class="alert alert-warning">
+          Немає записів доходів за цей період. <a href="{% url 'income_record_create' %}">Додайте записи</a> перед створенням звіту.
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
