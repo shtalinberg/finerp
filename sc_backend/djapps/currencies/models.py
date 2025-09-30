@@ -58,4 +58,4 @@ class CurrencyRate(models.Model):
         verbose_name_plural = _("Currency Rates")
 
     def __str__(self):
-        return self.code
+        return self.currency.iso_code
