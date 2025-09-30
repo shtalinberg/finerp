@@ -31,7 +31,7 @@
               {% for bank in banks %}
                 <tr>
                   <td>{{ bank.name }}</td>
-                  <td>{{ bank.code|default:"-" }}</td>
+                  <td>{{ bank.ifi_mfo|default:"-" }}</td>
                   <td>{{ bank.get_bank_type_display }}</td>
                   <td>{{ bank.city|default:"-" }}</td>
                   <td>{{ bank.swift_code|default:"-" }}</td>
