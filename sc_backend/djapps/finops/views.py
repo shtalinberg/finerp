@@ -21,6 +21,8 @@ from django.views.generic import (
 )
 
 from banks.models import BankAccount
+from monobank_api.services import MonoBankSyncService
+from privat24api.services import PrivatBankSyncService
 from taxpayers.models import Taxpayer
 
 from .constants import (
@@ -33,7 +35,6 @@ from .constants import (
 from .filters import FinopFilter
 from .forms import FinopFilterForm, FinopForm
 from .models import Category, Finop
-from .services import MonoBankSyncService, PrivatBankSyncService
 
 
 class FinopListView(LoginRequiredMixin, ListView):
