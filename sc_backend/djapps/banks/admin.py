@@ -5,13 +5,13 @@ from .models import Bank, BankAccount
 
 @admin.register(Bank)
 class BankAdmin(admin.ModelAdmin):
-    list_display = ('name', 'code', 'bank_type', 'city', 'swift_code', 'is_deleted')
+    list_display = ('name', 'ifi_mfo', 'bank_type', 'city', 'swift_code', 'is_deleted')
     list_filter = ('bank_type', 'is_deleted')
-    search_fields = ('name', 'code', 'swift_code')
+    search_fields = ('name', 'ifi_mfo', 'swift_code')
     fieldsets = (
         (
             'Основна інформація',
-            {'fields': ('name', 'code', 'bank_type', 'city', 'address')},
+            {'fields': ('name', 'ifi_mfo', 'bank_type', 'city', 'address')},
         ),
         (
             'SWIFT інформація',

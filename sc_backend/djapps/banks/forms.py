@@ -9,12 +9,12 @@ class BankForm(forms.ModelForm):
     """Форма для створення та редагування банку"""
     class Meta:
         model = Bank
-        fields = ['name', 'code', 'bank_type', 'city', 'address',
+        fields = ['name', 'ifi_mfo', 'bank_type', 'city', 'address',
                  'swift_code', 'swift_name', 'swift_address',
                  'corr_name', 'corr_address', 'corr_swift', 'corr_account']
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control'}),
-            'code': forms.TextInput(attrs={'class': 'form-control'}),
+            'ifi_mfo': forms.TextInput(attrs={'class': 'form-control'}),
             'bank_type': forms.Select(attrs={'class': 'form-select'}),
             'city': forms.TextInput(attrs={'class': 'form-control'}),
             'address': forms.TextInput(attrs={'class': 'form-control'}),
